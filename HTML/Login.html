@@ -23,22 +23,38 @@
                                     <h2 class="fw-bold mb-2 text-uppercase">Benvenuto in AFSE</h2>
                                     <p class="text-white-50 mb-3">Accedi o registrati!</p>
                                 </div>
-
+                                
+                                <!-- Username -->
                                 <div class="form-outline form-white mb-5">
                                     <label class="form-label" for="username">Username</label>
-                                    <input type="text" id="username" class="form-control form-control-lg" placeholder="Inserisci il tuo username"/>
+                                    <input type="text" id="username" class="form-control form-control-lg" placeholder="Inserisci il tuo username" autocomplete="off"/>
+                                    <div id="errorFeedbackUsername" class="d-none invalid-feedback" > Almeno 3 caratteri </div>
                                 </div>
 
+                                <!-- Password -->
                                 <div class="form-outline form-white mb-4">
                                     <label class="form-label" for="password">Password</label>
-                                    <input type="password" id="password" class="form-control form-control-lg" placeholder="Inserisci la tua password"/>
+                                    <!-- Gruppo bootstrap per permettere il layout del tasto visualizza password -->
+                                    <div class="input-group">
+                                        <input type="password" id="password" class="form-control form-control-lg" placeholder="Inserisci la tua password" aria-describedby="visualizzaPsw"/>
+                                        <button class="btn btn-light" type="button" id="visualizzaPsw" onclick="visualizzaPassword()" style="border-radius: 0 0.5em 0.5em 0;">
+                                            <img id="imgPsw" src="../Immagini/Occhio chiuso psw.png" alt="Visualizza password" style="width: 20px;">
+                                        </button>
+                                        <div id="errorFeedbackPassword" class="d-none invalid-feedback"> 
+                                            - 8-15 caratteri<br>
+                                            - Maiuscole e minuscole<br>
+                                            - Almeno un numero e simbolo
+                                        </div>
+                                    </div>
                                 </div>
 
+                                <!-- Pulsante login -->
                                 <div class="text-center">
-                                    <button class="btn btn-danger btn-lg px-5" type="submit">Login</button>
+                                    <button class="btn btn-danger btn-lg px-5" type="submit" onclick="loggaUtente()">Login</button>
                                 </div>
                             </form>
 
+                            <!-- Pulsante per andare a registrarsi -->
                             <div class="text-center">
                                 <p>Non hai un account? <a href="Registrazione.html" class="text-danger fw-bold">Registrati!</a></p>
                             </div>

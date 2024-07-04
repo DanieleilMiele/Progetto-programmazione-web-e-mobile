@@ -65,6 +65,12 @@ app.post('/registrazioneUtente', async (req, res) => {
     }
 });
 
+// Path per il login dell'utente
+app.get('/login', async (req, res) => {
+    if(checkLogin()){
+        login();
+    }
+})
 
 // Path l'ascolto del server sulla porta 3000
 app.listen(port, '0.0.0.0', () => {
