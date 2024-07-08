@@ -6,10 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Registrazione AFSE</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <link rel="stylesheet" type="text/css" href="../CSS/Login.css">
     <link rel="stylesheet" type="text/css" href="../CSS/Registrazione.css">
-    <script src="../JS/Comune.js"></script>
-    <script src="../JS/Registrazione.js"></script>
 </head>
 
 <body class="sfondo-generale">
@@ -20,7 +17,7 @@
                     <div class="card bg-dark text-white" style="border-radius: 1rem;">
                         <div class="card-body p-5">
 
-                            <form class="mb-md-5 mt-md-4" onsubmit="return false">      <!-- Il return false impedisce alla pagina di aggiornarsi al Submit (cosa che sarebbe il comportamento di default) -->
+                            <form class="mb-md-5 mt-md-4" onsubmit="return false" autocomplete="off">      <!-- Il return false impedisce alla pagina di aggiornarsi al Submit (cosa che sarebbe il comportamento di default) -->
                                 <!-- Intestazione registrazione -->
                                 <div class="text-center">
                                     <img src="../Immagini/Laying deadpool.png" style="width: 185px;" alt="logo">
@@ -30,26 +27,26 @@
                                 <!-- Username -->
                                 <div class="form-outline form-white mb-5">
                                     <label class="form-label" for="username">Username</label>
-                                    <input type="text" id="username" class="form-control form-control-lg" placeholder="Inserisci il tuo nuovo username" autocomplete="off"/>  
-                                    <div id="errorFeedbackUsername" class="d-none invalid-feedback">Lunghezza minima 3 caratteri</div>
+                                    <input type="text" id="U" class="form-control form-control-lg" placeholder="Inserisci il tuo nuovo username" autocomplete="off" required/>  
+                                    <div id="errorFeedbackU" class="d-none invalid-feedback">Lunghezza minima 3 caratteri</div>
                                 </div>
 
                                 <!-- Email -->
                                 <div class="form-outline form-white mb-5">
-                                    <label class="form-label" for="email">Email</label>
-                                    <input type="text" id="email" class="form-control form-control-lg" placeholder="Inserisci l'email che vuoi utilizzare" autocomplete="off"/>     <!-- Uso il type="text" perchè faccio un controllo più preciso con una regex -->
-                                    <div id="errorFeedbackEmail" class="d-none invalid-feedback">Formato dell'email non corretto</div>
+                                    <label class="form-label" for="E">Email</label>
+                                    <input type="text" id="E" class="form-control form-control-lg" placeholder="Inserisci l'email che vuoi utilizzare" autocomplete="off" required/>     <!-- Uso il type="text" perchè faccio un controllo più preciso con una regex -->
+                                    <div id="errorFeedbackE" class="d-none invalid-feedback">Formato dell'email non corretto</div>
                                 </div>
 
                                 <!-- Password -->
                                 <div class="form-outline form-white mb-5">
-                                    <label class="form-label" for="password">Password</label>
+                                    <label class="form-label" for="P">Password</label>
                                     <div class="input-group">
-                                        <input type="password" id="password" class="form-control form-control-lg" placeholder="Inserisci la tua nuova password" aria-describedby="visualizzaPsw" autocomplete="off"/>
+                                        <input type="password" id="P" class="form-control form-control-lg" placeholder="Inserisci la tua nuova password" aria-describedby="visualizzaPsw" autocomplete="off" required/>
                                         <button class="btn btn-light" type="button" id="visualizzaPsw" onclick="visualizzaPassword()" style="border-radius: 0 0.5em 0.5em 0;">
                                             <img id="imgPsw" src="../Immagini/Occhio chiuso psw.png" alt="Visualizza password" style="width: 20px;">
                                         </button>
-                                        <div id="errorFeedbackPassword" class="d-none invalid-feedback"> 
+                                        <div id="errorFeedbackP" class="d-none invalid-feedback"> 
                                             - 8-15 caratteri<br>
                                             - Maiuscole e minuscole<br>
                                             - Almeno un numero e simbolo
@@ -62,7 +59,7 @@
                                 <div class="form-outline form-white mb-4">    
                                     <label class="form-label">Seleziona o digita il tuo supereroe preferito (opzionale)</label>
                                     <!-- Collegamento tra input e datalist tramite attributo 'list' per una lista reattiva all'input dell'utente -->
-                                    <input class="form-select" list="tendina_supereroi">
+                                    <input id="input_supereroe" class="form-select" list="tendina_supereroi">
                                     <datalist id="tendina_supereroi">
                                         
                                     </datalist>
@@ -87,6 +84,8 @@
         </div>
     </section>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="../JS/Comune.js"></script>
+    <script src="../JS/Registrazione.js"></script>
     <script>
         getSupereroi();
     </script>

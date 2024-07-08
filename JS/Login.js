@@ -1,6 +1,3 @@
-const { error } = require("console");
-const { METHODS } = require("http");
-
 /* Funzione che permette il funzionamento del tasto che visualizza o oscura la password in inserimento */
 function visualizzaPassword(){
     let inputPsw =document.getElementById("password");
@@ -58,7 +55,7 @@ function loggaUtente(){
     let erroreUsername = document.getElementById("errorFeedbackUsername");
     let password = document.getElementById("password");
     let errorePassword = document.getElementById("errorFeedbackPassword");
-
+    
     if(checkCampiLogin(username,erroreUsername,password,errorePassword)){
 
         options = {

@@ -1,5 +1,8 @@
 /* LE CHIAVI E LE REGEX SONO PRESE DAL JAVASCRIPT "Comune.js" */
 
+/* Variabile globale dove con un eventListener salvo l'id del supereroe preferito scelto dall'utente */
+let idSupereroePreferito;
+
 /* Funzione per popolare la tendina per la selezione del supereroe preferito */
 async function getSupereroi(){
     let tendina_supereroi = document.getElementById("tendina_supereroi");
@@ -31,7 +34,7 @@ async function getSupereroi(){
 
 /* Funzione che gestisce il funzionamento del button per rendere in chiaro la password mentre la si digita */
 function visualizzaPassword(){
-    let inputPsw = document.getElementById("password");
+    let inputPsw = document.getElementById("P");
     let imgPsw = document.getElementById("imgPsw");
     
     let decodedImgSrc = decodeURIComponent(imgPsw.src);    /* Decodifico l'url dell'immagine per poterlo confrontare */
@@ -93,15 +96,20 @@ function checkCampiRegistrazione(username,erroreUsername,email,erroreEmail,passw
     return check;
 }
 
+/* Evento che prende l'id di un supereroe a partire dal suo nome (che è il "value" della option, mentre l'id è il "text") */
+document.getElementById("input_supereroe").addEventListener('change', function() {
+    let selectedOption = Array.from(this.list.options).find(item => item.value == this.value);      /* Conversione di un oggetto HTMLCollection in un array sul quale si fa una find */
+    idSupereroePreferito = selectedOption.textContent;          /* Dell'option in questione vado a prendere il testo (che nel mio caso specifico è l'id del supereroe) */
+});
+
 /* Al click del pulsante di registrazione viene fatta una fetch per registrare l'utente che farà un controllo sui campi inseriti e memorizzerà l'utente oppure mostrerà messaggi d'errore */
 function registraUtente(){
-    let username = document.getElementById("username");
-    let erroreUsername = document.getElementById("errorFeedbackUsername");
-    let email = document.getElementById("email");
-    let erroreEmail = document.getElementById("errorFeedbackEmail");
-    let password = document.getElementById("password");
-    let errorePassword = document.getElementById("errorFeedbackPassword");
-    let fav_supereroe = document.getElementById("tendina_supereroi").value;
+    let username = document.getElementById("U");
+    let erroreUsername = document.getElementById("errorFeedbackU");
+    let email = document.getElementById("E");
+    let erroreEmail = document.getElementById("errorFeedbackE");
+    let password = document.getElementById("P");
+    let errorePassword = document.getElementById("errorFeedbackP");
     
     if(checkCampiRegistrazione(username,erroreUsername,email,erroreEmail,password,errorePassword)){     /* Passo gli elementi DOM in modo da poterci lavorare anche nella funzione di controllo */
         options = {
@@ -113,7 +121,7 @@ function registraUtente(){
                 username: username.value,
                 email: email.value,
                 password: password.value,
-                fav_supereroe: fav_supereroe
+                id_fav_supereroe: idSupereroePreferito             //Questo valore è sempre aggiornato grazie alla variabile globale che è a sua volta aggiornata dall'eventListener al change dell'input
             })
         }
     
