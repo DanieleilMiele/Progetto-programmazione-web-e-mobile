@@ -3,7 +3,7 @@ function visualizzaPassword(){
     let inputPsw =document.getElementById("password");
     let imgPsw = document.getElementById("imgPsw");
 
-    let decodedImgSrc = decodeURIComponent(imgPsw.src);     /* Decodifico l'url dell'immagine per poterlo confrontare *//* Decodifico l'url dell'immagine per poterlo confrontare */
+    let decodedImgSrc = decodeURIComponent(imgPsw.src);     /* Decodifico l'url dell'immagine per poterlo confrontare */
 
     if(decodedImgSrc.includes("Occhio chiuso psw.png")){        /* Controllo che nell'uri decodificato compaia il nome del file con occhio chiuso */
         /* La password non era visibile e va resa visibile */
@@ -18,20 +18,20 @@ function visualizzaPassword(){
 }
 
 //Funzione che controlla i che i campi del login rispetto il formato richiesto
-function checkCampiLogin(username,erroreUsername,password,errorePassword){
+function checkCampiLogin(email,erroreEmail,password,errorePassword){
     let check = true;
     
-    if(username.value.length < 3){                      /* Controllo che l'username sia lungo almeno 3 caratteri */
-        //Username errato
-        erroreUsername.classList.remove("d-none");
-        username.classList.remove("is-valid");
-        username.classList.add("is-invalid");
+    if(!(regE.test(email.value))){                      /* Controllo che l'email rispetti il formato richiesto */
+        //Email errata
+        erroreEmail.classList.remove("d-none");
+        email.classList.remove("is-valid");
+        email.classList.add("is-invalid");
         check = false;
     }else{
-        //Username corretto
-        erroreUsername.classList.add("d-none");
-        username.classList.remove("is-invalid");
-        username.classList.add("is-valid");
+        //Email corretta
+        erroreEmail.classList.add("d-none");
+        email.classList.remove("is-invalid");
+        email.classList.add("is-valid");
     }
 
     if(!(regP.test(password.value))){
@@ -51,30 +51,31 @@ function checkCampiLogin(username,erroreUsername,password,errorePassword){
 }
 
 function loggaUtente(){
-    let username = document.getElementById("username");
-    let erroreUsername = document.getElementById("errorFeedbackUsername");
+    let email = document.getElementById("email");                       //Non prendo i .value in moodo da passare alla checkCampi solo l'oggetto in modo da poter lavorare sia sul realtivo html che sul suo valore
+    let erroreEmail = document.getElementById("errorFeedbackEmail");
     let password = document.getElementById("password");
     let errorePassword = document.getElementById("errorFeedbackPassword");
     
-    if(checkCampiLogin(username,erroreUsername,password,errorePassword)){
+    if(checkCampiLogin(email,erroreEmail,password,errorePassword)){
 
         options = {
-            method: "GET",
+            method: "POST",
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                username: username,
-                password: password
+                email: email.value,
+                password: password.value
             })
         }
 
-        fetch(`http://localhost:3000/login`,options)
+        fetch(`http://localhost:3000/loginUtente`,options)
         .then(response => response.json())
         .then(response => {
-            console.log(response);
+            if(response.outcome){
+                localStorage.setItem("idUtente",response._id);
+                window.location.href = "../HTML/Album_main.html";
+            }
         })
-    }else{
-        console.log("Sono max pezzali");
     }
 }

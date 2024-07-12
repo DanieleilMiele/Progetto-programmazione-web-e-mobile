@@ -24,11 +24,11 @@
                                     <p class="text-white-50 mb-3">Accedi o registrati!</p>
                                 </div>
                                 
-                                <!-- Username -->
+                                <!-- Email -->
                                 <div class="form-outline form-white mb-5">
-                                    <label class="form-label" for="username">Username</label>
-                                    <input type="text" id="username" class="form-control form-control-lg" placeholder="Inserisci il tuo username" autocomplete="off"/>
-                                    <div id="errorFeedbackUsername" class="d-none invalid-feedback" > Almeno 3 caratteri </div>
+                                    <label class="form-label" for="email">Email</label>
+                                    <input type="text" id="email" class="form-control form-control-lg" placeholder="Inserisci l'email del tuo account" autocomplete="off" required/>
+                                    <div id="errorFeedbackEmail" class="d-none invalid-feedback" > Formato dell'email non corretto </div>
                                 </div>
 
                                 <!-- Password -->
@@ -36,7 +36,7 @@
                                     <label class="form-label" for="password">Password</label>
                                     <!-- Gruppo bootstrap per permettere il layout del tasto visualizza password -->
                                     <div class="input-group">
-                                        <input type="password" id="password" class="form-control form-control-lg" placeholder="Inserisci la tua password" aria-describedby="visualizzaPsw" autocomplete="off"/>
+                                        <input type="password" id="password" class="form-control form-control-lg" placeholder="Inserisci la tua password" aria-describedby="visualizzaPsw" autocomplete="off" required/>
                                         <button class="btn btn-light" type="button" id="visualizzaPsw" onclick="visualizzaPassword()" style="border-radius: 0 0.5em 0.5em 0;">
                                             <img id="imgPsw" src="../Immagini/Occhio chiuso psw.png" alt="Visualizza password" style="width: 20px;">
                                         </button>

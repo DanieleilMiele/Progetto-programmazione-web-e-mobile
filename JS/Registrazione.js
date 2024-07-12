@@ -51,6 +51,7 @@ function visualizzaPassword(){
     }
 }
 
+/* Funzione di controllo formattazione lato server in caso venisse disabilitata quella lato client */
 function checkCampiRegistrazione(username,erroreUsername,email,erroreEmail,password,errorePassword){    /* Ricevo gli interi elementi dom in modo da poter lavorare sul sia su di loro che sul loro valore con .value */
     let check = true;
 
@@ -128,11 +129,10 @@ function registraUtente(){
         fetch(`http://localhost:3000/registrazioneUtente`, options)
         .then(response => response.json())
         .then(response => {
-            console.log(response); 
+            if(response.outcome){
+                localStorage.setItem("idUtente",response.id);
+                window.location.href = "../HTML/Album_main.html";
+            }
         })
-    }else{
-        console.log("Sono max pezzali");
     }
-
-    
 }
