@@ -30,6 +30,7 @@
                                     <input type="text" id="email" class="form-control form-control-lg" placeholder="Inserisci l'email del tuo account" autocomplete="off" required/>
                                     <div id="errorFeedbackEmail" class="d-none invalid-feedback" > Formato dell'email non corretto </div>
                                 </div>
+                                <div id="errorFeedbackLoginEmail" class="d-none invalid-feedback" > Email o password non corrette </div>
 
                                 <!-- Password -->
                                 <div class="form-outline form-white mb-4">
@@ -48,6 +49,8 @@
                                     </div>
                                 </div>
 
+                                <div id="errorFeedbackLogin" class="d-none alert alert-danger" role="alert">Email e/o password non corretti!</div>
+
                                 <!-- Pulsante login -->
                                 <div class="text-center">
                                     <button class="btn btn-danger btn-lg px-5" type="submit" onclick="loggaUtente()">Login</button>
@@ -65,8 +68,8 @@
         </div>
     </section>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-    <script src="../JS/Login.js"></script>
     <script src="../JS/Comune.js"></script>
+    <script src="../JS/Login.js"></script>
 </body>
 
 </html>

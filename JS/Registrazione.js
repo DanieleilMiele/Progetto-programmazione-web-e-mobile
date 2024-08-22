@@ -5,6 +5,7 @@ let idSupereroePreferito;
 
 /* Funzione per popolare la tendina per la selezione del supereroe preferito */
 async function getSupereroi(){
+    let linkLegale = document.getElementById("link_legale");
     let tendina_supereroi = document.getElementById("tendina_supereroi");
     let offset = 0;
     let total = 0;
@@ -17,6 +18,12 @@ async function getSupereroi(){
         await fetch(`http://gateway.marvel.com/v1/public/characters?apikey=${public_key}&limit=${100}&offset=${offset}`)
         .then(response => response.json())
         .then(response => {
+
+            if(i==0){                   /* Prendo questi elementi solo al primo ciclo essendo cose che non variano */
+                linkLegale.innerHTML = response.attributionText;     /* Aggiorno il testo del link legale con quello fornito dalla risposta */
+                linkLegale.href = response.attributionH;               /* Aggiorno il link legale con quello fornito dalla risposta */
+            }
+            
             /* console.log(response); */
             if(i==0){
                 total = response.data.total;
@@ -29,25 +36,6 @@ async function getSupereroi(){
         })
 
         offset += 100;
-    }
-}
-
-/* Funzione che gestisce il funzionamento del button per rendere in chiaro la password mentre la si digita */
-function visualizzaPassword(){
-    let inputPsw = document.getElementById("P");
-    let imgPsw = document.getElementById("imgPsw");
-    
-    let decodedImgSrc = decodeURIComponent(imgPsw.src);    /* Decodifico l'url dell'immagine per poterlo confrontare */
-
-    if(decodedImgSrc.includes("Occhio chiuso psw.png")){        /* Controllo che nell'uri decodificato compaia il nome del file con occhio chiuso */
-        /* La password non era visibile e va resa visibile */
-        inputPsw.type = "text";
-        imgPsw.src = "../Immagini/Occhio aperto psw.png";
-        
-    }else{
-        /* La password era visibile e va nascosta */
-        inputPsw.type = "password";
-        imgPsw.src = "../Immagini/Occhio chiuso psw.png";
     }
 }
 
@@ -131,7 +119,7 @@ function registraUtente(){
         .then(response => {
             if(response.outcome){
                 localStorage.setItem("idUtente",response.id);
-                window.location.href = "../HTML/Album_main.html";
+                window.location.href = "Album_main.html";
             }
         })
     }

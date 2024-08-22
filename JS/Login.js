@@ -74,7 +74,9 @@ function loggaUtente(){
         .then(response => {
             if(response.outcome){
                 localStorage.setItem("idUtente",response._id);
-                window.location.href = "../HTML/Album_main.html";
+                window.location.href = "Album_main.html";
+            }else{
+                document.getElementById("errorFeedbackLogin").classList.remove("d-none");
             }
         })
     }
