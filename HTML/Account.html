@@ -43,15 +43,14 @@
 
                                         <!-- Lista dropdown -->
                                         <li class="nav-item dropdown">
-                                            <a class="nav-link dropdown-toggle" href="#" role="button"
-                                                data-bs-toggle="dropdown" aria-expanded="false">Pacchetti</a>
+                                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                                                aria-expanded="false">Mercato</a>
                                             <ul class="dropdown-menu">
-                                                <li><a class="dropdown-item" href="#">Action</a></li>
-                                                <li><a class="dropdown-item" href="#">Another action</a></li>
+                                                <li><a class="dropdown-item" href="Negozio.html">Acquista crediti/pacchetti</a></li>
                                                 <li>
                                                     <hr class="dropdown-divider">
                                                 </li>
-                                                <li><a class="dropdown-item" href="#">Something else here</a></li>
+                                                <li><a class="dropdown-item" href="Marketplace.html">Scambia figurine</a></li>
                                             </ul>
                                         </li>
 
@@ -79,39 +78,43 @@
                         <!-- Carta dettagli account -->
                         <div class="card col-5">
                             <div class="card-body">
-                                <h5 class="card-title">Dettagli account</h5>
-                            </div>
-                            <div class="input-group mb-3">
-                                <span class="input-group-text">Username</span>
-                                <input id="username" type="text" disabled class="form-control" aria-describedby="username">
-                            </div>
-                            <div class="input-group mb-3">
-                                <span class="input-group-text">Email</span>
-                                <input id="email" type="text" disabled class="form-control" aria-describedby="email">
-                            </div>
-                            <div class="input-group mb-3">
-                                <span class="input-group-text" id="password">Password</span>
-                                <input type="password" id="P" disabled class="form-control form-control-lg" aria-describedby="visualizzaPsw" autocomplete="off" onkeyup="checkPassword(this.value)"/>
-                                <button disabled class="btn btn-light" type="button" id="visualizzaPsw" onclick="visualizzaPassword()" style="border-radius: 0 0.5em 0.5em 0;">
-                                    <img id="imgPsw" src="../Immagini/Occhio chiuso psw.png" alt="visualizzaPsw" style="width: 20px;">
-                                </button>
-                            </div>
-
-                            <!-- Sezione alert errori/successi -->
-                            <div id="alertDanger" class="alert alert-danger d-none" role="alert">
-                                Parametri password non rispettati!
-                            </div>
-                            <div id="alertStessaPsw" class="alert alert-danger d-none" role="alert">
-                                La nuova password non può essere uguale a quella attuale!
-                            </div>
-                            <div id="alertSuccess" class="alert alert-success d-none" role="alert">
-                                Parametri rispettati
-                            </div>
-
-                            <!-- Sezione pulsanti cambio password -->
-                            <div class="mb-3">
-                                <button id="btnCambioPsw" class="btn btn-sm btn-primary" onclick="attivaCambiaPassword()">Cambia password</button>
-                                <button disabled id="btnSalvaPsw" class="btn btn-sm btn-success d-none" onclick="cambiaPassword(); disattivaCambiaPassword()">Salva</button>
+                                <div class="row pb-3">
+                                    <h5 class="card-title mb-0 col">Dettagli account</h5>
+                                    <button class="btn btn-sm btn-danger col-3" onclick="logOut()">Log out</button>
+                                </div>
+                                
+                                <div class="input-group mb-3">
+                                    <span class="input-group-text">Username</span>
+                                    <input id="username" type="text" disabled class="form-control" aria-describedby="username">
+                                </div>
+                                <div class="input-group mb-3">
+                                    <span class="input-group-text">Email</span>
+                                    <input id="email" type="text" disabled class="form-control" aria-describedby="email">
+                                </div>
+                                <div class="input-group mb-3">
+                                    <span class="input-group-text" id="password">Password</span>
+                                    <input type="password" id="P" disabled class="form-control form-control-lg" aria-describedby="visualizzaPsw" autocomplete="off" onkeyup="checkPassword(this.value)"/>
+                                    <button disabled class="btn btn-light" type="button" id="visualizzaPsw" onclick="visualizzaPassword()" style="border-radius: 0 0.5em 0.5em 0;">
+                                        <img id="imgPsw" src="../Immagini/Occhio chiuso psw.png" alt="visualizzaPsw" style="width: 20px;">
+                                    </button>
+                                </div>
+    
+                                <!-- Sezione alert errori/successi -->
+                                <div id="alertDanger" class="alert alert-danger d-none" role="alert">
+                                    Parametri password non rispettati!
+                                </div>
+                                <div id="alertStessaPsw" class="alert alert-danger d-none" role="alert">
+                                    La nuova password non può essere uguale a quella attuale!
+                                </div>
+                                <div id="alertSuccess" class="alert alert-success d-none" role="alert">
+                                    Parametri rispettati
+                                </div>
+    
+                                <!-- Sezione pulsanti cambio password -->
+                                <div class="mb-2">
+                                    <button id="btnCambioPsw" class="btn btn-sm btn-primary" onclick="attivaCambiaPassword()">Cambia password</button>
+                                    <button disabled id="btnSalvaPsw" class="btn btn-sm btn-success d-none" onclick="cambiaPassword(); disattivaCambiaPassword()">Salva</button>
+                                </div>
                             </div>
                         </div>
 
@@ -163,6 +166,7 @@
     <script src="../JS/Account.js"></script>
     <script src="../JS/Comune.js"></script>
     <script>
+        checkLog();
         getNomeBenvenuto();
         popolazioneDettagliAccount();
         

@@ -110,7 +110,10 @@ function registraUtente(){
                 username: username.value,
                 email: email.value,
                 password: password.value,
-                id_fav_supereroe: idSupereroePreferito             //Questo valore è sempre aggiornato grazie alla variabile globale che è a sua volta aggiornata dall'eventListener al change dell'input
+                id_fav_supereroe: idSupereroePreferito,             //Questo valore è sempre aggiornato grazie alla variabile globale che è a sua volta aggiornata dall'eventListener al change dell'input
+                crediti: 0,
+                pacchetti: 0,
+                album: []
             })
         }
     

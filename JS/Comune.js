@@ -17,7 +17,7 @@ function checkLog(){
 
 //Funzione per sloggare un utente
 function logOut(){
-    localStorage.removeItem(idUtente);
+    localStorage.removeItem("idUtente");     //Rimuovo l'id utente dal localstorage
     window.location.reload(true);           //Dopo aver eliminato l'id utente ricarico la pagina in modo che venga chiamato di nuovo il checkLog che non trovando l'id rimanderà al login
 }
 

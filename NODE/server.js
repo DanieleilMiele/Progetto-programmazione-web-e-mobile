@@ -1,3 +1,5 @@
+//Reminder: non chiudo le connessioni a mongo perchè mongo gestisce tramite un pool di connessioni tutte le connessioni aperte rendendole riutilizzabili e ottimizzando di conseguenza il server
+
 const express = require('express');
 const app = express();
 app.use(express.json());
@@ -87,8 +89,6 @@ async function registraUtente(utente,res){
             "message": "Errore nella registrazione"
         })
 
-        await client.close();
-
     }catch(e){
         if(e.code == 11000){
             res.status(500).send("Username o email già in uso");
@@ -123,8 +123,6 @@ async function loginUtente(body,res){
             })
         }
 
-        await client.close();
-
     }catch(e){
         console.error(e);
         res.status(500).send("Errore generico del server, codice errore: "+e.code);
@@ -150,7 +148,6 @@ async function getAlbum(id,res){
             res.status(404).send("Utente non trovato");
         }
 
-        await client.close();
         console.log("Qua è la fine");            //CONTROLLO DEBUG DA ELIMINARE
     }catch(e){
         console.error(e);
@@ -172,12 +169,13 @@ async function getInfoUtente(id,res){
                 username: utente.username,
                 email: utente.email,
                 password: utente.password,
+                crediti: utente.crediti,
+                pacchetti: utente.pacchetti
             });
         }else{
             res.status(404).send("Utente non trovato");
         }
 
-        await client.close();
     }catch(e){
         console.error(e);
         res.status(500).send("Errore generico del server, codice errore: "+e.code);
@@ -212,8 +210,6 @@ async function cambioPassword(body,res){
                 res.status(404).send("Utente non trovato");
             }
 
-            await client.close();
-
         }else{
             res.status(401).json({
                 "messaggio": "La nuova password non può essere uguale a quella vecchia",
@@ -246,11 +242,75 @@ async function eliminaAccount(id,res){
 
         }
 
-        await client.close();
-
     } catch (e) {
         res.status(500).send("Errore generico durante l'eliminazione dell'account, codice errore: "+e.code);
 
+    }
+}
+
+//Funzione per l'acquisto di crediti
+async function acquistaCrediti(id, body, res){
+    try{
+        await client.connect();
+        dbConnection = client.db("AFSE");
+
+        let esitoModifica = await dbConnection.collection("Utenti").updateOne({_id: ObjectId.createFromHexString(id)},{$inc:{"crediti":body.crediti}});
+
+        if(esitoModifica.acknowledged){
+            res.status(200).json({
+                "messaggio": "Crediti acquistati con successo",
+                "esito": true
+            });
+        }else{
+            res.status(404).json({
+                "messaggio": "Errore durante l'acquisto dei crediti",
+                "esito": false
+            });
+        }
+        
+    }catch(e){
+        console.error(e);
+        res.status(500).send("Errore generico del server, codice errore: "+e.code);
+    }
+
+}
+
+//Funzione per l'acquisto di pacchetti (DA FINIRE MANCA IL CONTROLLO SUI CREDITI SE SONO SUFFICIENTI)
+async function acquistaPacchetti(id, body, res){
+    try{
+
+        await client.connect();
+        dbConnection = client.db("AFSE");
+
+        let utente = await dbConnection.collection("Utenti").findOne({_id: ObjectId.createFromHexString(id)});
+        let creditiUtente = utente.crediti;         //Prendo il numero di crediti dell'utente per controllare che bastino per comprare il numero di apcchetti da lui voluto
+
+        if(creditiUtente >= body.pacchetti){        //Controllo che l'utente abbia abbastanza crediti per comprare i pacchetti
+
+            let esitoIncremento = await dbConnection.collection("Utenti").updateOne({_id: ObjectId.createFromHexString(id)},{$inc:{"pacchetti":body.pacchetti}});       //Aggiungo tanti pacchetti quanti sono stati comprati
+            let esitoDecremento = await dbConnection.collection("Utenti").updateOne({_id: ObjectId.createFromHexString(id)},{$inc:{"crediti":-body.pacchetti}});        //Decremento i crediti dell'utente tanto quanti sono i pacchetti comprati
+
+            if(esitoIncremento.acknowledged && esitoDecremento.acknowledged){
+                res.status(200).json({
+                    "messaggio": "Pacchetti acquistati con successo",
+                    "esito": true
+                });
+            }else{
+                res.status(404).json({
+                    "messaggio": "Errore durante l'acquisto dei pacchetti",
+                    "esito": false
+                });
+            }
+        }else{
+            res.status(401).json({
+                "messaggio": "Crediti insufficienti per l'acquisto",
+                "esito": false
+            });
+        }
+
+    }catch(e){
+        console.error(e);
+        res.status(500).send("Errore generico del server, codice errore: "+e.code);
     }
 }
 
@@ -294,6 +354,16 @@ app.post('/utente/:id/cambioPsw', async (req, res) => {
 //Path per eliminazione account di un utente
 app.delete('/utente/:id/eliminaAccount', async (req, res) => {
     await eliminaAccount(req.params.id,res); 
+})
+
+//Path per l'acquisto di crediti
+app.post('/utente/:id/acquistaCrediti', async (req, res) => {
+    await acquistaCrediti(req.params.id, req.body, res);
+})
+
+//Path per l'acquisto di pacchetti
+app.post('/utente/:id/acquistaPacchetti', async(req, res) => {
+    await acquistaPacchetti(req.params.id, req.body, res);
 })
 
 // Path l'ascolto del server sulla porta 3000
