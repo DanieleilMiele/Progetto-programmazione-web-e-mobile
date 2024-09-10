@@ -153,3 +153,55 @@ function eliminaAccount(){
         
     });
 }
+
+async function popolazionePreferito(){
+    let nome_pref = document.getElementById("nome_pref");
+    let immagine_pref = document.getElementById("immagine_pref");
+    let dettagli_pref = document.getElementById("dettagli_pref");
+    let numero_fumetti = document.getElementById("numero_fumetti");
+    let numero_serie = document.getElementById("numero_serie");
+    let numero_storie = document.getElementById("numero_storie");
+    let numero_eventi = document.getElementById("numero_eventi");
+
+    let idUtente = localStorage.getItem("idUtente");
+
+    await fetch(`http://localhost:3000/utente/${idUtente}/info`)
+    .then(response => response.json())
+    .then(response => {
+
+        let idSupereroePreferito = response.preferito;
+
+        fetch(`https://gateway.marvel.com:443/v1/public/characters/${idSupereroePreferito}?apikey=${public_key}`)
+        .then(response => response.json())
+        .then(response => {
+            nome_pref.innerHTML = response.data.results[0].name;
+            immagine_pref.src = response.data.results[0].thumbnail.path + "." + response.data.results[0].thumbnail.extension;
+            dettagli_pref.href = `Dettagli_supereroe.html?id=${idSupereroePreferito}`;
+            numero_fumetti.innerHTML = response.data.results[0].comics.available + " fumetti/o";
+            numero_serie.innerHTML = response.data.results[0].series.available + " serie";
+            numero_storie.innerHTML = response.data.results[0].stories.available + " storie/a";   
+            numero_eventi.innerHTML = response.data.results[0].events.available + " eventi/o";
+        });
+        
+    });
+
+    adattamentoThumbnail();
+}
+
+//Funzione per regolare il padding della card in base ad un immagine quadrata o rettangolare
+function adattamentoThumbnail(){
+    let immagine_pref = document.getElementById("immagine_pref");
+    let card_eroe_pref = document.getElementById("card_eroe_pref");
+
+    immagine_pref.onload = function(){
+
+        console.log(immagine_pref.naturalWidth);        //CONTROLLO DEBUG DA ELIMINARE
+        console.log(immagine_pref.naturalHeight);       //CONTROLLO DEBUG DA ELIMINARE
+
+        if(immagine_pref.naturalWidth == immagine_pref.naturalHeight){
+            card_eroe_pref.classList.remove("pe-0");
+        }else{
+            card_eroe_pref.classList.add("pe-0");
+        }
+    }
+}

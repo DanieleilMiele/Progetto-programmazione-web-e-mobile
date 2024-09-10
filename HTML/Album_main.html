@@ -31,7 +31,7 @@
 
                     <!-- Pulsante account -->
                     <li class="nav-item">
-                        <a class="nav-link" href="Account.html">Account</a>
+                        <a class="nav-link" href="Account.html">Profilo</a>
                     </li>
 
                     <!-- Lista dropdown -->
@@ -93,7 +93,7 @@
             <!-- Ricerca supereroe -->
             <div class="col-4">
                 <input id="input_ricerca_figurina" type="text" class="form-control border-dark bg-dark text-white"
-                    placeholder="Cerca la tua figurina" aria-describedby="ricerca_figurina" onkeyup="getCloniFigurine()">
+                    placeholder="Cerca la tua figurina" aria-describedby="ricerca_figurina">
             </div>
         </div>
 
@@ -114,8 +114,7 @@
                         <li class="list-group-item">A third item</li>
                     </ul> -->
                     <div class="card-footer">
-                        <a href="#" class="card-link">Card link</a>
-                        <a href="#" class="card-link">Another link</a>
+                        <a href="#" class="card-link">più dettagli</a>
                     </div>
                 </div>
             </div>
@@ -123,8 +122,13 @@
     </div>
 
     <!-- Messaggio d'errore per album vuoto -->
-    <div class="d-flex justify-content-center align-items-center d-none">
-        <h1 id="mex_no_fig" class="text-warning" style="font-family: Arial, Helvetica, sans-serif; margin-top: 10%;">Non hai ancora collezionato nessuna figurina!</h1>
+    <div id="mex_no_fig" class="d-flex justify-content-center align-items-center d-none alert alert-warning mx-5" style="margin-bottom: 10rem;" role="alert">
+        <h1 style="font-family: Arial, Helvetica, sans-serif; margin-top: 10%; margin-bottom: 10%;">Non hai ancora collezionato nessuna figurina!</h1>
+    </div>
+
+    <!-- Messaggio d'errore ricerca eroe senza risultati -->
+    <div id="mex_no_sup" class="d-flex justify-content-center align-items-center d-none alert alert-warning mx-5" style="margin-bottom: 10rem;" role="alert">
+        <h1 style="font-family: Arial, Helvetica, sans-serif; ">Nessun super eroe corrispondente trovato!</h1>
     </div>
 
     <footer>

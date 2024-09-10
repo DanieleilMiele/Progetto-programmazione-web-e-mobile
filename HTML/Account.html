@@ -11,9 +11,9 @@
 </head>
 
 <body>
-    <div class="d-flex flex-column flex-lg-row h-lg-full bg-surface-secondary">
+    <div class="bg-surface-secondary">
         <!-- Main content -->
-        <div class="h-screen flex-grow-1 overflow-y-lg-auto">
+        <div class="">
             <!-- Header -->
             <header class="bg-surface-primary">
                 <div class="container-fluid p-0">
@@ -38,7 +38,7 @@
 
                                         <!-- Pulsante account -->
                                         <li class="nav-item">
-                                            <a class="nav-link active" href="Account.html">Account</a>
+                                            <a class="nav-link active" href="Account.html">Profilo</a>
                                         </li>
 
                                         <!-- Lista dropdown -->
@@ -72,70 +72,78 @@
             </header>
 
             <!-- Main -->
-            <main class="py-6 bg-surface-secondary">
+            <main class="bg-surface-secondary">
                 <div class="container">
                     <div class="mt-5 p-3 row">
                         <!-- Carta dettagli account -->
-                        <div class="card col-5">
-                            <div class="card-body">
-                                <div class="row pb-3">
-                                    <h5 class="card-title mb-0 col">Dettagli account</h5>
-                                    <button class="btn btn-sm btn-danger col-3" onclick="logOut()">Log out</button>
-                                </div>
-                                
-                                <div class="input-group mb-3">
-                                    <span class="input-group-text">Username</span>
-                                    <input id="username" type="text" disabled class="form-control" aria-describedby="username">
-                                </div>
-                                <div class="input-group mb-3">
-                                    <span class="input-group-text">Email</span>
-                                    <input id="email" type="text" disabled class="form-control" aria-describedby="email">
-                                </div>
-                                <div class="input-group mb-3">
-                                    <span class="input-group-text" id="password">Password</span>
-                                    <input type="password" id="P" disabled class="form-control form-control-lg" aria-describedby="visualizzaPsw" autocomplete="off" onkeyup="checkPassword(this.value)"/>
-                                    <button disabled class="btn btn-light" type="button" id="visualizzaPsw" onclick="visualizzaPassword()" style="border-radius: 0 0.5em 0.5em 0;">
-                                        <img id="imgPsw" src="../Immagini/Occhio chiuso psw.png" alt="visualizzaPsw" style="width: 20px;">
-                                    </button>
-                                </div>
-    
-                                <!-- Sezione alert errori/successi -->
-                                <div id="alertDanger" class="alert alert-danger d-none" role="alert">
-                                    Parametri password non rispettati!
-                                </div>
-                                <div id="alertStessaPsw" class="alert alert-danger d-none" role="alert">
-                                    La nuova password non può essere uguale a quella attuale!
-                                </div>
-                                <div id="alertSuccess" class="alert alert-success d-none" role="alert">
-                                    Parametri rispettati
-                                </div>
-    
-                                <!-- Sezione pulsanti cambio password -->
-                                <div class="mb-2">
-                                    <button id="btnCambioPsw" class="btn btn-sm btn-primary" onclick="attivaCambiaPassword()">Cambia password</button>
-                                    <button disabled id="btnSalvaPsw" class="btn btn-sm btn-success d-none" onclick="cambiaPassword(); disattivaCambiaPassword()">Salva</button>
+                        <div class="col-5">
+                            <div class="card shadow">
+                                <div class="card-body">
+                                    <div class="row pb-3">
+                                        <h5 class="card-title mb-0 col">Dettagli account</h5>
+                                        <button class="btn btn-sm btn-danger col-3 me-3" onclick="logOut()">Log out</button>
+                                    </div>
+                                    
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text">Username</span>
+                                        <input id="username" type="text" disabled class="form-control" aria-describedby="username">
+                                    </div>
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text">Email</span>
+                                        <input id="email" type="text" disabled class="form-control" aria-describedby="email">
+                                    </div>
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text" id="password">Password</span>
+                                        <input type="password" id="P" disabled class="form-control form-control-lg" aria-describedby="visualizzaPsw" autocomplete="off" onkeyup="checkPassword(this.value)"/>
+                                        <button disabled class="btn btn-light" type="button" id="visualizzaPsw" onclick="visualizzaPassword()" style="border-radius: 0 0.5em 0.5em 0;">
+                                            <img id="imgPsw" src="../Immagini/Occhio chiuso psw.png" alt="visualizzaPsw" style="width: 20px;">
+                                        </button>
+                                    </div>
+        
+                                    <!-- Sezione alert errori/successi -->
+                                    <div id="alertDanger" class="alert alert-danger d-none" role="alert">
+                                        Parametri password non rispettati!
+                                    </div>
+                                    <div id="alertStessaPsw" class="alert alert-danger d-none" role="alert">
+                                        La nuova password non può essere uguale a quella attuale!
+                                    </div>
+                                    <div id="alertSuccess" class="alert alert-success d-none" role="alert">
+                                        Parametri rispettati
+                                    </div>
+        
+                                    <!-- Sezione pulsanti cambio password -->
+                                    <div class="mb-2">
+                                        <button id="btnCambioPsw" class="btn btn-sm btn-primary" onclick="attivaCambiaPassword()">Cambia password</button>
+                                        <button disabled id="btnSalvaPsw" class="btn btn-sm btn-success d-none" onclick="cambiaPassword(); disattivaCambiaPassword()">Salva</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-
                         <!-- Carta super eroe preferito -->
-                        <div class="card col col-6 ms-auto">
-                            <img src="" class="card-img-top" alt="">
-                            <div class="card-body">
-                                
-                                <h5 class="card-title">Super eroe preferito</h5>
-                            </div>
-                            <ul class="list-group list-group-flush">
-                                <li class="list-group-item">An item</li>
-                                <li class="list-group-item">A second item</li>
-                                <li class="list-group-item">A third item</li>
-                            </ul>
-                            <div class="card-body">
-                                <a href="#" class="card-link">Card link</a>
-                                <a href="#" class="card-link">Another link</a>
+                        <div class="col-6 ms-auto">
+                            <div id="card_eroe_pref" class="card shadow d-flex flex-column pe-0" style="max-width: 540px;">
+                                <div class="row g-0 felx-grow-1">
+                                    <div class="col-6 d-flex flex-column">
+                                        <div class="card-body d-flex flex-column flex-grow-1">
+                                            <h5 class="card-title">Super eroe preferito</h5>
+                                            <h6 id="nome_pref" class="card-text mt-1">Nome eroe</h6>
+                                            <p id="descrizione_pref" class="card-text mb-0 mt-2">Presente in:
+                                                <ul>
+                                                    <li id="numero_fumetti"></li>
+                                                    <li id="numero_serie"></li>
+                                                    <li id="numero_storie"></li>
+                                                    <li id="numero_eventi"></li>
+                                                </ul>
+                                            </p>
+                                            <button id="dettagli_pref" class="btn btn-sm btn-primary mt-auto me-auto">Dettagli eroe</button>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 d-flex align-items-center">
+                                        <img id="immagine_pref" src="..." class="img-fluid rounded shado ms-auto" alt="...">
+                                    </div>
+                                </div>
                             </div>
                         </div>
-
                     </div>
                     <!-- Card elimina account -->
                     <div class="row mt-5">
@@ -156,8 +164,8 @@
                         </div>
                     </div>
                 </div>
-        </main>
-    </div>
+            </main>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
@@ -169,7 +177,7 @@
         checkLog();
         getNomeBenvenuto();
         popolazioneDettagliAccount();
-        
+        popolazionePreferito();
     </script>
 </body>
 

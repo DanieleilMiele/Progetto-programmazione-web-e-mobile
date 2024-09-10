@@ -1,0 +1,33 @@
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+body {
+    background-color: rgb(150, 0, 0);
+}
+
+main {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+footer {
+    padding: 20px;
+}
+
+.content {
+    flex: 1;
+}
+
+#selected_page::placeholder {
+    color: white;
+}
+
+#input_ricerca_figurina::placeholder {
+    color: white;
+}

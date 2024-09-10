@@ -170,7 +170,8 @@ async function getInfoUtente(id,res){
                 email: utente.email,
                 password: utente.password,
                 crediti: utente.crediti,
-                pacchetti: utente.pacchetti
+                pacchetti: utente.pacchetti,
+                preferito: utente.id_fav_supereroe,
             });
         }else{
             res.status(404).send("Utente non trovato");

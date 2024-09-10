@@ -88,7 +88,7 @@ function checkCampiRegistrazione(username,erroreUsername,email,erroreEmail,passw
 /* Evento che prende l'id di un supereroe a partire dal suo nome (che è il "value" della option, mentre l'id è il "text") */
 document.getElementById("input_supereroe").addEventListener('change', function() {
     let selectedOption = Array.from(this.list.options).find(item => item.value == this.value);      /* Conversione di un oggetto HTMLCollection in un array sul quale si fa una find */
-    idSupereroePreferito = selectedOption.textContent;          /* Dell'option in questione vado a prendere il testo (che nel mio caso specifico è l'id del supereroe) */
+    idSupereroePreferito = parseInt(selectedOption.textContent,10);          /* Dell'option in questione vado a prendere il testo (che nel mio caso specifico è l'id del supereroe) */
 });
 
 /* Al click del pulsante di registrazione viene fatta una fetch per registrare l'utente che farà un controllo sui campi inseriti e memorizzerà l'utente oppure mostrerà messaggi d'errore */
