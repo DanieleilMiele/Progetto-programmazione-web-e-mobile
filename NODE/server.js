@@ -367,6 +367,11 @@ app.post('/utente/:id/acquistaPacchetti', async(req, res) => {
     await acquistaPacchetti(req.params.id, req.body, res);
 })
 
+//Path per il decremento dei pacchetti quando vengono aperti
+app.post('/utente/:id/acquistaPacchetti', async(req, res) => {
+    await acquistaPacchetti(req.params.id, req.body, res);
+})
+
 // Path l'ascolto del server sulla porta 3000
 app.listen(port, () => {
     console.log(`Server in ascolto sulla porta:${port}`)

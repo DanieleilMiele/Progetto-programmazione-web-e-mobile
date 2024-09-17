@@ -162,6 +162,7 @@ async function popolazionePreferito(){
     let numero_serie = document.getElementById("numero_serie");
     let numero_storie = document.getElementById("numero_storie");
     let numero_eventi = document.getElementById("numero_eventi");
+    let link_legale = document.getElementById("link_legale");
 
     let idUtente = localStorage.getItem("idUtente");
 
@@ -181,6 +182,8 @@ async function popolazionePreferito(){
             numero_serie.innerHTML = response.data.results[0].series.available + " serie";
             numero_storie.innerHTML = response.data.results[0].stories.available + " storie/a";   
             numero_eventi.innerHTML = response.data.results[0].events.available + " eventi/o";
+            link_legale.innerHTML = response.attributionText;  
+            link_legale.href = response.attributionH;
         });
         
     });
@@ -191,7 +194,7 @@ async function popolazionePreferito(){
 //Funzione per regolare il padding della card in base ad un immagine quadrata o rettangolare
 function adattamentoThumbnail(){
     let immagine_pref = document.getElementById("immagine_pref");
-    let card_eroe_pref = document.getElementById("card_eroe_pref");
+    let div_immagine_pref = document.getElementById("div_immagine_pref");
 
     immagine_pref.onload = function(){
 
@@ -199,9 +202,15 @@ function adattamentoThumbnail(){
         console.log(immagine_pref.naturalHeight);       //CONTROLLO DEBUG DA ELIMINARE
 
         if(immagine_pref.naturalWidth == immagine_pref.naturalHeight){
-            card_eroe_pref.classList.remove("pe-0");
+            immagine_pref.classList.remove("rounded-end");
+            div_immagine_pref.classList.remove("ms-auto");
+            immagine_pref.classList.add("rounded");
+            immagine_pref.classList.add("classeImgEroe");
         }else{
-            card_eroe_pref.classList.add("pe-0");
+            div_immagine_pref.classList.add("ms-auto");
+            immagine_pref.classList.remove("classeImgEroe");
+            immagine_pref.classList.remove("rounded");
+            immagine_pref.classList.add("rounded-end");
         }
     }
 }

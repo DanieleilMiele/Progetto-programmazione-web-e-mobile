@@ -92,9 +92,37 @@ async function acquistaPacchetti(){
 }
 
 
-//Funzione per aprire il modal di acquisto pacchetti
-function spachettamento(){
-    
+//Funzione per popolare il modal dello spacchettamento
+async function spacchettamento(){
+
+    aggiornamentoNumeroPacchetti();  //Aggiorno il numero di pacchetti posseduti dall'utente
+
+    await pulisciModal();    //Pulisco il modal da eventuali card di spacchettamenti precedenti
+
+    let modalCardTemplate = document.getElementById("modalCardTemplate");
+
+    let eroiDaEstrarre = await estraiEroi();        //Estraggo i 5 eroi che l'utente riceverà
+
+    for(let i=0; i<5; i++){
+        console.log("Popolazione " + (i+1) + "° figurina");      //CONTROLLO DEBUG DA ELIMINARE
+        await fetch(`http://gateway.marvel.com/v1/public/characters?apikey=${public_key}&limit=${1}&offset=${eroiDaEstrarre[i]}`)
+        .then(response => response.json())
+        .then(response => {
+            
+            let clone = modalCardTemplate.cloneNode(true);  //Clono il template della card
+
+            let titoloEroe = clone.getElementsByClassName("card-title")[0];
+            let imgEroe = clone.getElementsByClassName("card-img-top")[0];
+
+            titoloEroe.innerHTML = response.data.results[0].name;
+            imgEroe.src = response.data.results[0].thumbnail.path + "." + response.data.results[0].thumbnail.extension;
+
+            clone.classList.remove("d-none");   //Mostro la card
+
+            modalCardTemplate.after(clone);     //Inserisco la card nel modal
+        })
+
+    }
 }
 
 //Funzione per controllare che l'utente abbia abbastanza crediti per acquistare i pacchetti
@@ -126,5 +154,65 @@ async function checkMinimoPacchetti(){
     }else{
         return false;
     }
+
+}
+
+//Funzione che ritorna un array di 5 numeri casuali che rappresentano gli eroi da estrarre
+async function estraiEroi(){
+
+    let numeriEstratti = new Array(5).fill(0);    //Creo un array di 5 elementi inizializzati a 0
+    let totale;     //Variabile che conterrà il numero totale di eroi presenti nel database della Marvel
+
+    let response = await fetch(`http://gateway.marvel.com/v1/public/characters?apikey=${public_key}&limit=${1}`);
+    let responseJson = await response.json();
+        
+    totale = responseJson.data.total;
+    for(let i=0; i<5; i++){
+        numeriEstratti[i] = Math.floor(Math.random()*totale);   //Genero un numero casuale tra 0 e il totale degli eroi presenti nel database della Marvel
+        console.log(numeriEstratti[i]);                //CONTROLLO DEBUG DA ELIMINARE
+    }
+    return numeriEstratti;
+}
+
+//Funzione per pulire il modal da eventuali card di spacchettamenti precedenti
+async function pulisciModal(){
+    let divRowCards = document.getElementById("rowModalCards");
+
+    let cardsArray = divRowCards.children;
+
+    for(let i=cardsArray.length-1; i>=1; i--){       //Parto da 1 perché il primo elemento è il template della card che non voglio eliminare
+        divRowCards.removeChild(cardsArray[i]);
+    }
+
+}
+
+function aggiornamentoNumeroPacchetti(){
+
+    let counterPacchetti = document.getElementById("counterPacchetti").value;
+    console.log("Pacchetti al momento dell'acquisto: " + counterPacchetti);     //CONTROLLO DEBUG DA ELIMINARE
+
+    let idUtente = localStorage.getItem("idUtente");
+
+    options = {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            pacchettiDecrementati: (counterPacchetti-1)
+        })
+    }
+
+    fetch(`http://localhost:3000/utente/${idUtente}/aggiornaPacchetti`,options)
+    .then(response => response.json())
+    .then(response => {
+        
+        if(response.esito){
+            console.log("Aggiornamento pacchetti effettuato");     //CONTROLLO DEBUG DA ELIMINARE
+            checkCreditiPacchetti();    //Aggiorno i pacchetti mostrati nel bean nella navbar
+        }else{
+            console.log("Aggiornamento pacchetti non effettuato");     //CONTROLLO DEBUG DA ELIMINARE
+        }
+    });
 
 }

@@ -119,7 +119,6 @@ async function getCloniFigurine(fig_visualizzate){
                         ogni volta) per legare alle variabili il rispettivo elemento HTML del clone */
                         let nome = clone.getElementsByClassName('card-title')[0];
                         let immagine = clone.getElementsByClassName('card-img-top')[0];
-                        let dettagli = clone.getElementsByClassName('card-link')[0];
                         
                         /* Nelle variabili legate al clone mettiamo i valori presi dalla response*/
                         nome.innerHTML = response.data.results[i].name;
