@@ -78,7 +78,7 @@ async function getCloniFigurine(fig_visualizzate){
     let linkLegale = document.getElementById("link_legale");        //Link legale per la marvel
 
     if(valInputUtente != ""){       //Se l'utente ha inserito un valore nella barra di ricerca
-        console.log("Sto per fare la fetch (con input di testo) alla marvel di merda");   //CONTROLLO DEBUG DA ELIMINARE
+        console.log("Sto per fare la fetch (con input di testo) alla marvel di merda e l'input è: " + valInputUtente);   //CONTROLLO DEBUG DA ELIMINARE
         
         let errore = document.getElementById("mex_no_sup");     //Messaggio di errore se non ci sono supereroi corrispondenti
         let offset = 0;
@@ -107,7 +107,7 @@ async function getCloniFigurine(fig_visualizzate){
 
                     let idSupereroe = response.data.results[i].id;    //Id del supereroe corrente
 
-                    if(arr_figurine_utente.includes(idSupereroe)){    //Se il supereroe corrente è tra le figurine dell'utente
+                    if( (arr_figurine_utente.find(figurina => figurina.id == idSupereroe)) != undefined ){    //Se il supereroe corrente è tra le figurine dell'utente
 
                         eroeTrovato = true;     //Setto a true la variabile che indica che almeno un supereroe è stato trovato
                         errore.classList.add('d-none');             //Nascondo il messaggio di errore
@@ -119,10 +119,19 @@ async function getCloniFigurine(fig_visualizzate){
                         ogni volta) per legare alle variabili il rispettivo elemento HTML del clone */
                         let nome = clone.getElementsByClassName('card-title')[0];
                         let immagine = clone.getElementsByClassName('card-img-top')[0];
+                        let descrizione = clone.getElementsByClassName('card-text')[0];
+                        let div_descrizione = clone.getElementsByClassName('description-container')[0];
+                        let dettagli = clone.getElementsByClassName('card-link')[0];
                         
                         /* Nelle variabili legate al clone mettiamo i valori presi dalla response*/
                         nome.innerHTML = response.data.results[i].name;
                         immagine.src = response.data.results[i].thumbnail.path + "." + response.data.results[i].thumbnail.extension;
+                        console.log("\nDescrizione eroe: "+response.data.results[i].description);   //CONTROLLO DEBUG DA ELIMINARE
+                        if( (response.data.results[i].description) != "" ){     //Se il supereroe ha una descrizione la mostro
+                            div_descrizione.classList.remove('d-none');
+                            descrizione.innerHTML = response.data.results[i].description;
+                        }
+
                         dettagli.href = "Info_supereroe.html?id=" + idSupereroe;     //Link alla pagina di dettaglio del supereroe
                         
                         /* Rimuovo il d-none dal clone in modo da renderlo visibile */
@@ -169,11 +178,20 @@ async function getCloniFigurine(fig_visualizzate){
                 ogni volta) per legare alle variabili il rispettivo elemento HTML del clone */
                 let nome = clone.getElementsByClassName('card-title')[0];
                 let immagine = clone.getElementsByClassName('card-img-top')[0];
+                let descrizione = clone.getElementsByClassName('card-text')[0];
+                let div_descrizione = clone.getElementsByClassName('description-container')[0];
                 let dettagli = clone.getElementsByClassName('card-link')[0];
                 
                 /* Nelle variabili legate al clone mettiamo i valori presi dalla response (indice 0 perchè le richieste fatte con l'id supereroe ovviamente restituiscono solo un supereroe quindi l'array results sarà sempre da un elemento)*/
                 nome.innerHTML = response.data.results[0].name;
                 immagine.src = response.data.results[0].thumbnail.path + "." + response.data.results[0].thumbnail.extension;
+
+                if(response.data.results[0].description != ""){     //Se il supereroe ha una descrizione la mostro
+                
+                    div_descrizione.classList.remove('d-none');
+                    descrizione.innerHTML = response.data.results[0].description;
+                }
+
                 dettagli.href = "Info_supereroe.html?id=" + response.data.results[0].id;     //Link alla pagina di dettaglio del supereroe
                 
                 /* Rimuovo il d-none dal clone in modo da renderlo visibile */
