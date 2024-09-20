@@ -17,8 +17,8 @@ app.use(cors());
 const crypto = require('crypto'); //Package per l'hashing della password
 
 const { MongoClient , ObjectId} = require('mongodb');   //Client per la connessione e wrapper per trasformare gli id (stringhe) in oggetti (ObjectId supporti di mongo)
-const { get } = require('http');
-const { join } = require('path');
+/* const { get } = require('http');
+const { join } = require('path'); */
 const uri = "mongodb+srv://daniele:Lavandino21@afse.obusmfu.mongodb.net/?appName=AFSE";  //link per la connessione al database online
 
 // Codice per la connessione al database di Mongo
@@ -29,6 +29,11 @@ const regE = /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?
 const regP = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@.#$!%*?&^])[ A-Za-z\d@.#$!%*?&]{8,15}$/;
 
 const port = 3000;
+
+const public_key = "00f9d24688feb94b662e98b83c78ad5e";
+const private_key = "55a6e08818eec367f39284596d7db6391662162f";
+let ts = Date.now().toString();  //Timestamp attuale per la generazione dell'hash per l'api marvel (forzato a stringa solo per sicurezza per il metodo createHash)
+
 /* ----------------------------------------------------------------------- FUNZIONI ----------------------------------------------------------------------- */
 
 //Funzione per l'hashing della password
@@ -276,7 +281,7 @@ async function acquistaCrediti(id, body, res){
 
 }
 
-//Funzione per l'acquisto di pacchetti (DA FINIRE MANCA IL CONTROLLO SUI CREDITI SE SONO SUFFICIENTI)
+//Funzione per l'acquisto di pacchetti
 async function acquistaPacchetti(id, body, res){
     try{
 
@@ -284,7 +289,7 @@ async function acquistaPacchetti(id, body, res){
         dbConnection = client.db("AFSE");
 
         let utente = await dbConnection.collection("Utenti").findOne({_id: ObjectId.createFromHexString(id)});
-        let creditiUtente = utente.crediti;         //Prendo il numero di crediti dell'utente per controllare che bastino per comprare il numero di apcchetti da lui voluto
+        let creditiUtente = utente.crediti;         //Prendo il numero di crediti dell'utente per controllare che bastino per comprare il numero di pacchetti da lui voluto
 
         if(creditiUtente >= body.pacchetti){        //Controllo che l'utente abbia abbastanza crediti per comprare i pacchetti
 
@@ -313,6 +318,159 @@ async function acquistaPacchetti(id, body, res){
         console.error(e);
         res.status(500).send("Errore generico del server, codice errore: "+e.code);
     }
+}
+
+async function decrementaPacchetti(id, body, res){
+    try{
+
+        await client.connect();
+        dbConnection = client.db("AFSE");
+
+        let esitoDecremento = await dbConnection.collection("Utenti").updateOne({_id: ObjectId.createFromHexString(id)},{$set:{"pacchetti":body.pacchettiDecrementati}});        //Decremento i pacchetti dell'utente tanto quanti sono stati aperti
+
+        if(esitoDecremento.acknowledged){
+            res.status(200).json({
+                "messaggio": "Pacchetti decrementati con successo",
+                "esito": true
+            });
+        }else{
+            res.status(404).json({
+                "messaggio": "Errore durante il decremento dei pacchetti",
+                "esito": false
+            });
+        }
+    }catch(e){
+        console.error(e);
+        res.status(500).send("Errore generico del server, codice errore: "+e.code);
+    }
+}
+
+async function aggiungiFigurine(id, body, res){
+    try{
+
+        //Qua passo l'array di POSIZIONI delle figurine che vanno tramutate negli eroi che corrispondono a quelle posizioni tramite l'api marvel
+        let arrayPosizioniFigurine = body.arrayFigurine;          //Prendo l'array di figurine che l'utente ha aperto
+        console.log("Array di posizioni delle figurine\n" + arrayPosizioniFigurine);            //CONTROLLO DEBUG DA ELIMINARE
+
+        let arrayFigurineNuove = [];        //Array che conterrà gli id delle figurine aperte dall'utente
+
+
+        //Preparo l'hash per le richieste backend all'api marvel
+        const hash = crypto.createHash('md5').update(ts + private_key + public_key).digest('hex');
+
+        for(let i=0; i<arrayPosizioniFigurine.length; i++){
+            
+            await fetch(`http://gateway.marvel.com/v1/public/characters?ts=${ts}&apikey=${public_key}&hash=${hash}&limit=${1}&offset=${arrayPosizioniFigurine[i]}`)
+            .then(response => response.json())
+            .then(response => {
+
+                let idEroeCorrente = response.data.results[0].id;        //Prendo l'id dell'eroe corrente
+                arrayFigurineNuove.push(idEroeCorrente);                //Aggiungo l'id dell'eroe corrente all'array di figurine nuove
+
+            })
+        }
+
+        console.log("Array di effettivi id delle figurine\n" + arrayFigurineNuove);            //CONTROLLO DEBUG DA ELIMINARE
+
+        await client.connect();
+        dbConnection = client.db("AFSE");
+
+        let esitoModifica;
+        let checkPrimaFigurina = false;
+        let checkInteraOperazione = true;
+
+        do{
+            let utenteCorrente = await dbConnection.collection("Utenti").findOne({_id: ObjectId.createFromHexString(id)});
+            let arrayFigurineVecchie = utenteCorrente.album;        //Prendo l'array di figurine che l'utente ha già
+            console.log("Array di effettivi id delle figurine vecchie\n" + JSON.stringify(arrayFigurineVecchie));            //CONTROLLO DEBUG DA ELIMINARE
+
+            console.log("Lunghezza array figurine vecchie: " + arrayFigurineVecchie.length);            //CONTROLLO DEBUG DA ELIMINARE
+            if(arrayFigurineVecchie.length != 0){
+                //Se l'utente ha già delle figurine nel suo album...
+
+                console.log("Utente ha già delle figurine");            //CONTROLLO DEBUG DA ELIMINARE
+                checkPrimaFigurina = false;         //Indico che non siamo alla prima figurina trovata dall'utente in caso la precedente fosse stata la prima
+
+                for(let i=0; i<arrayFigurineNuove.length; i++){
+
+                    console.log("Iterazione nel for di controllo doppioni numero " + i);            //CONTROLLO DEBUG DA ELIMINARE
+
+                    //Cerco la figurina nuova tra quelle vecchie
+                    let esitoRicercaFigurina = arrayFigurineVecchie.find(figurinaVecchia => figurinaVecchia.id == arrayFigurineNuove[i]);
+
+                    if(esitoRicercaFigurina != undefined){
+                        //Se la nuova figurina è già posseduta dall'utente....
+                        esitoModifica = await dbConnection.collection("Utenti").updateOne({_id: ObjectId.createFromHexString(id), "album.id": arrayFigurineNuove[i]},{"$inc":{"album.$.count":1}});        //Incremento di 1 il count della figurina doppione (il dollaro indica il valore dell'array che ha matchato il filtro)        
+
+                        if(!(esitoModifica.acknowledged)){
+                            //Se l'operazione di aggiunta della nuova figurina non va a buon fine...
+                            checkInteraOperazione = false;
+                            console.log("Errore durante l'aggiunta delle figurine (doppione) all'iterazione numero " + i);            //CONTROLLO DEBUG DA ELIMINARE
+                            break;
+                        }else{
+                            console.log("Figurina doppione incrementata con successo");            //CONTROLLO DEBUG DA ELIMINARE
+                        }
+
+                    }else{
+                        //Se la nuova figurina non è un doppione invece...
+                        let nuovoOggettoFigurina = {
+                            "id": arrayFigurineNuove[i],
+                            "count": 1
+                        }
+                        esitoModifica = await dbConnection.collection("Utenti").updateOne({_id: ObjectId.createFromHexString(id)},{$push:{"album":nuovoOggettoFigurina}});        //Aggiungo la nuova figurina all'album dell'utente
+
+                        if(!(esitoModifica.acknowledged)){
+                            //Se l'operazione di aggiunta della nuova figurina non va a buon fine...
+
+                            checkInteraOperazione = false;
+                            console.log("Errore durante l'aggiunta delle figurine (non doppione) all'iterazione numero " + i);            //CONTROLLO DEBUG DA ELIMINARE
+                            break;
+                        }else{
+                            console.log("Figurina non doppione aggiunta con successo");            //CONTROLLO DEBUG DA ELIMINARE
+                        }
+                    }
+                }
+            }else{
+                //Se l'utente non ha nessuna figurina nel suo album...
+
+                console.log("E' la prima figurina dell'utente");            //CONTROLLO DEBUG DA ELIMINARE
+
+                checkPrimaFigurina = true;        //Indico che siamo alla prima figurina trovata dall'utente
+
+                let nuovoOggettoFigurina = {
+                    "id": arrayFigurineNuove[0],        //0 perchè se sono alla prima figurina assoluta dell'album sarà di sicuro anche la prima delle 5 che sono state estratte
+                    "count": 1
+                }
+                esitoModifica = await dbConnection.collection("Utenti").updateOne({_id: ObjectId.createFromHexString(id)},{$push:{"album":nuovoOggettoFigurina}});        //Aggiungo la nuova figurina all'album dell'utente
+
+                if(esitoModifica.acknowledged){
+                    console.log("Prima figurina aggiunta con successo");            //CONTROLLO DEBUG DA ELIMINARE
+                    checkInteraOperazione = true;
+                }else{
+                    checkInteraOperazione = false;
+                    console.log("Errore durante l'aggiunta della prima figurina all'album dell'utente");            //CONTROLLO DEBUG DA ELIMINARE
+                }
+            }
+
+        }while(checkPrimaFigurina == true);
+
+        if(checkInteraOperazione){
+            res.status(200).json({
+                "messaggio": "Figurine aggiunte con successo",
+                "esito": true
+            });
+        }else{
+            res.status(404).json({
+                "messaggio": "Errore durante l'aggiunta delle figurine",
+                "esito": false
+            });
+        }
+
+    }catch(e){
+        console.error(e);
+        res.status(500).send("Errore generico del server, codice errore: "+e.code);
+    }
+
 }
 
 /* ----------------------------------------------------------------------- PATHS --------------------------------------------------------------------------- */
@@ -368,8 +526,13 @@ app.post('/utente/:id/acquistaPacchetti', async(req, res) => {
 })
 
 //Path per il decremento dei pacchetti quando vengono aperti
-app.post('/utente/:id/acquistaPacchetti', async(req, res) => {
-    await acquistaPacchetti(req.params.id, req.body, res);
+app.post('/utente/:id/decrementaPacchetti', async(req, res) => {
+    await decrementaPacchetti(req.params.id, req.body, res);
+})
+
+//Path per l'aggiunta dei figurine aperti all'album dell'utente
+app.post('/utente/:id/aggiungiFigurine', async(req, res) => {
+    await aggiungiFigurine(req.params.id, req.body, res);
 })
 
 // Path l'ascolto del server sulla porta 3000

@@ -34,7 +34,7 @@ async function svuotaAlbum(){
 
     let div_album = document.getElementById("div_album");     //Div contenente tutte le figurine dell'album
     let array_figurine = div_album.children;    //Array di tutte le figurine dell'album
-    console.log("Numero di figurine attualmente nella pagina template incluso: "+array_figurine.length);   //CONTROLLO DEBUG DA ELIMINARE
+    console.log("Numero di figurine attualmente nella pagina (template incluso): "+array_figurine.length);   //CONTROLLO DEBUG DA ELIMINARE
 
     for(let i=array_figurine.length-2; i>=0; i--){                   //Ciclo tutte le figurine dell'album tranne l'ultima che è il template da clonare
         console.log("Numero ciclo svuotamento: "+i);   //CONTROLLO DEBUG DA ELIMINARE
@@ -150,7 +150,7 @@ async function getCloniFigurine(fig_visualizzate){
             console.log("Sto per fare la fetch (senza input di testo) alla marvel di merda");   //CONTROLLO DEBUG DA ELIMINARE
 
             //Cerco il supereroe tramite l'id del ciclo corrente
-            await fetch(`http://gateway.marvel.com/v1/public/characters/${arr_figurine_utente[i]}?apikey=${public_key}`)
+            await fetch(`http://gateway.marvel.com/v1/public/characters/${arr_figurine_utente[i].id}?apikey=${public_key}`)
             .then(response => response.json())
             .then(response => {
 

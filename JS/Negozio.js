@@ -103,8 +103,11 @@ async function spacchettamento(){
 
     let eroiDaEstrarre = await estraiEroi();        //Estraggo i 5 eroi che l'utente riceverà
 
+    await aggiungiFigurineAlbum(eroiDaEstrarre);      //Aggiungo le figurine estratte all'album dell'utente
+
+    //Mostro finalmente all'utente le 5 figurine estratte
     for(let i=0; i<5; i++){
-        console.log("Popolazione " + (i+1) + "° figurina");      //CONTROLLO DEBUG DA ELIMINARE
+        /* console.log("Popolazione " + (i+1) + "° figurina"); */      //CONTROLLO DEBUG DA ELIMINARE
         await fetch(`http://gateway.marvel.com/v1/public/characters?apikey=${public_key}&limit=${1}&offset=${eroiDaEstrarre[i]}`)
         .then(response => response.json())
         .then(response => {
@@ -143,20 +146,6 @@ async function checkMinimoCrediti(){
     }
 }
 
-//Funzione per controllare che l'utente abbia abbastanza pacchetti da aprire quando cerca di aprirne uno
-async function checkMinimoPacchetti(){
-
-    let jsonCreditiPacchetti = await checkCreditiPacchetti();   //Prendo il numero di crediti e pacchetti posseduti dall'utente
-    let pacchettiDisponibili = jsonCreditiPacchetti.pacchetti;      //Isolo dal JSON il numero di pacchetti posseduti dall'utente
-
-    if(pacchettiDisponibili > 0){      //Controllo che l'utente abbia almeno un pacchetto da aprire
-        return true;
-    }else{
-        return false;
-    }
-
-}
-
 //Funzione che ritorna un array di 5 numeri casuali che rappresentano gli eroi da estrarre
 async function estraiEroi(){
 
@@ -167,6 +156,7 @@ async function estraiEroi(){
     let responseJson = await response.json();
         
     totale = responseJson.data.total;
+    console.log("Id estratti nell funzione estraiEroi():");     //CONTROLLO DEBUG DA ELIMINARE
     for(let i=0; i<5; i++){
         numeriEstratti[i] = Math.floor(Math.random()*totale);   //Genero un numero casuale tra 0 e il totale degli eroi presenti nel database della Marvel
         console.log(numeriEstratti[i]);                //CONTROLLO DEBUG DA ELIMINARE
@@ -186,10 +176,10 @@ async function pulisciModal(){
 
 }
 
-function aggiornamentoNumeroPacchetti(){
+async function aggiornamentoNumeroPacchetti(){
 
-    let counterPacchetti = document.getElementById("counterPacchetti").value;
-    console.log("Pacchetti al momento dell'acquisto: " + counterPacchetti);     //CONTROLLO DEBUG DA ELIMINARE
+    let jsonCreditiPacchetti = await checkCreditiPacchetti();   //Prendo il numero di crediti e pacchetti posseduti dall'utente
+    let pacchettiDisponibili = jsonCreditiPacchetti.pacchetti;      //Isolo dal JSON il numero di crediti posseduti dall'utente
 
     let idUtente = localStorage.getItem("idUtente");
 
@@ -199,11 +189,11 @@ function aggiornamentoNumeroPacchetti(){
             "Content-Type": "application/json"
         },
         body: JSON.stringify({
-            pacchettiDecrementati: (counterPacchetti-1)
+            pacchettiDecrementati: (pacchettiDisponibili-1)
         })
     }
 
-    fetch(`http://localhost:3000/utente/${idUtente}/aggiornaPacchetti`,options)
+    await fetch(`http://localhost:3000/utente/${idUtente}/decrementaPacchetti`,options)
     .then(response => response.json())
     .then(response => {
         
@@ -216,3 +206,52 @@ function aggiornamentoNumeroPacchetti(){
     });
 
 }
+
+async function aggiungiFigurineAlbum(arrayFigurine){
+
+    console.log("Array id figurine che sto passando per l'aggiunta all'album\n" + arrayFigurine);     //CONTROLLO DEBUG DA ELIMINARE
+
+    let idUtente = localStorage.getItem("idUtente");
+
+    options = {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            arrayFigurine: arrayFigurine
+        })
+    }
+
+    await fetch(`http://localhost:3000/utente/${idUtente}/aggiungiFigurine`, options)
+    .then(response => response.json())
+    .then(response => {
+        
+        if(response.esito){
+            console.log("Aggiunta figurine all'album effettuata");     //CONTROLLO DEBUG DA ELIMINARE
+        }else{
+            console.log("Aggiunta figurine all'album non effettuata");     //CONTROLLO DEBUG DA ELIMINARE
+        }
+    })
+
+    console.log("La funzione aggiungiFigurineAlbum() è terminata");     //CONTROLLO DEBUG DA ELIMINARE
+}
+
+async function controllaButtonSpacchettamento(){
+    
+    let btnApriPacchetti =  document.getElementById("btnApriPacchetti");
+
+    let jsonCreditiPacchetti = await checkCreditiPacchetti();   //Prendo il numero di crediti e pacchetti posseduti dall'utente
+    let pacchettiDisponibili = jsonCreditiPacchetti.pacchetti;      //Isolo dal JSON il numero di pacchetti posseduti dall'utente
+
+    if(pacchettiDisponibili > 0){      //Controllo che l'utente abbia almeno un pacchetto da aprire
+        btnApriPacchetti.disabled = false;      //Abilito il bottone
+    }else{
+        btnApriPacchetti.disabled = true;       //Disabilito il bottone
+    }
+}
+
+//Controllo ogni 5 secondi se l'utente ha abbastanza pacchetti per abilitare il bottone di spacchettamento
+setInterval( () => {
+    controllaButtonSpacchettamento();
+}, 5000);
