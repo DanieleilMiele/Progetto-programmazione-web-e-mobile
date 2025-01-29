@@ -32,6 +32,9 @@ function getIdFigurine(){
 //Funzione per svuotare il div che contiene tutte le figurine dell'album
 async function svuotaAlbum(){
 
+    document.getElementById("numero_pagina").disabled = true;      //Selettore del numero di elementi per pagina, lo disabilito finchè lo svuotamento non è completato, lo abilito di nuovo alla fine del caricamento delle figurine
+    console.log("Disabilito il cambio pagina...");   //CONTROLLO DEBUG DA ELIMINARE
+
     let div_album = document.getElementById("div_album");     //Div contenente tutte le figurine dell'album
     let array_figurine = div_album.children;    //Array di tutte le figurine dell'album
     console.log("Numero di figurine attualmente nella pagina (template incluso): "+array_figurine.length);   //CONTROLLO DEBUG DA ELIMINARE
@@ -40,6 +43,7 @@ async function svuotaAlbum(){
         console.log("Numero ciclo svuotamento: "+i);   //CONTROLLO DEBUG DA ELIMINARE
         div_album.removeChild(array_figurine[i]);
     }
+
 }
 
 //Funzione che basandosi sull'array di id delle figurine dell'utente crea e aggiunge all'album le figurine stesse oppure mostra 
@@ -154,7 +158,7 @@ async function getCloniFigurine(fig_visualizzate){
     }else{
 
         //Se l'utente non ha inserito nulla nella barra di ricerca si procede con la creazione di tutte le figurine possedute dall'utente
-        for(let i = 0; i < arr_figurine_utente.length; i++){
+        for(let i = 0; i < localStorage.getItem("fig_visualizzate"); i++){
             
             console.log("Sto per fare la fetch (senza input di testo) alla marvel di merda");   //CONTROLLO DEBUG DA ELIMINARE
 
@@ -203,6 +207,8 @@ async function getCloniFigurine(fig_visualizzate){
             })
         }
     }
+
+    document.getElementById("numero_pagina").disabled = false;      //Selettore del numero di elementi per pagina, lo riabilito alla fine del caricamento delle figurine (lo avevo disabilitato durante lo svuotamento)
 }
 
 

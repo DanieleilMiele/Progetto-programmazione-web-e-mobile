@@ -51,7 +51,7 @@ function checkCampiLogin(email,erroreEmail,password,errorePassword){
 }
 
 function loggaUtente(){
-    let email = document.getElementById("email");                       //Non prendo i .value in moodo da passare alla checkCampi solo l'oggetto in modo da poter lavorare sia sul realtivo html che sul suo valore
+    let email = document.getElementById("email");                       //Non prendo i .value in modo da passare alla checkCampi solo l'oggetto in modo da poter lavorare sia sul realtivo html che sul suo valore
     let erroreEmail = document.getElementById("errorFeedbackEmail");
     let password = document.getElementById("password");
     let errorePassword = document.getElementById("errorFeedbackPassword");

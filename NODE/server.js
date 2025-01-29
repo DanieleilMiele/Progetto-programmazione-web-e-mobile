@@ -473,6 +473,144 @@ async function aggiungiFigurine(id, body, res){
 
 }
 
+// Funzione per ottenere tutte le proposte di scambio
+async function getProposteScambio(res) {
+    try {
+        await client.connect();
+        const dbConnection = client.db("AFSE");
+
+        const proposte = await dbConnection.collection("ProposteScambio").find().toArray();     //La find vuota ritorna tutte gli elementi in una collezione
+
+        res.status(200).json({
+            "outcome": true,
+            "proposte": proposte
+        });
+
+    } catch (e) {
+        console.error(e);
+        res.status(500).send("Errore durante il recupero delle proposte di scambio, codice errore: " + e.code);
+    }
+}
+
+// Funzione per aggiungere una nuova proposta di scambio
+async function aggiungiPropostaScambio(id_utente, body, res) {
+    try {
+        await client.connect();
+        const dbConnection = client.db("AFSE");
+
+        // Creazione dell'oggetto proposta di scambio
+        const proposta = {
+            utente: id_utente,
+            cartaProposta: body.cartaProposta,
+            secondaCartaProposta: body.secondaCartaProposta, // Potrebbe essere undefined
+            cartaRichiesta: body.cartaRichiesta,
+            dataProposta: new Date()
+        };
+
+        const risultato = await dbConnection.collection("ProposteScambio").insertOne(proposta);
+
+        if (risultato.acknowledged) {
+            res.status(200).json({
+                "outcome": true,
+                "message": "Proposta di scambio aggiunta con successo"
+            });
+        } else {
+            res.status(500).json({
+                "outcome": false,
+                "message": "Errore durante l'aggiunta della proposta di scambio"
+            });
+        }
+    } catch (e) {
+        console.error(e);
+        res.status(500).send("Errore durante l'aggiunta della proposta di scambio, codice errore: " + e.code);
+    }
+}
+
+// Funzione per accettare una proposta di scambio
+async function accettaPropostaScambio(idUtente, idProposta, res) {
+    try {
+        await client.connect();
+        const dbConnection = client.db("AFSE");
+
+        // Recupera la proposta di scambio
+        const proposta = await dbConnection.collection("ProposteScambio").findOne({ _id: ObjectId.createFromHexString(idProposta) });
+
+        if (proposta) {
+            const utente = await dbConnection.collection("Utenti").findOne({ _id: ObjectId.createFromHexString(idUtente) });    // Vado a prendere le info dell'utente che ha accettato la proposta
+
+            // Ricontrollo per sicurezza, anche lato server, che l'utente abbia la carta richiesta per lo scambio
+            if (utente) {
+                if (utente.figurine.includes(proposta.cartaRichiesta)) {    
+                    // Esegui lo scambio:
+                    // Rimuovi la carta richiesta dall'utente che accetta
+                    await dbConnection.collection("Utenti").updateOne(
+                        { _id: ObjectId.createFromHexString(idUtente) },
+                        { $pull: { figurine: proposta.cartaRichiesta } }
+                    );
+
+                    // Aggiungi la carta proposta all'utente che accetta
+                    await dbConnection.collection("Utenti").updateOne(
+                        { _id: ObjectId.createFromHexString(idUtente) },
+                        { $addToSet: { figurine: proposta.cartaProposta } }
+                    );
+
+                    // Gestisci la seconda carta proposta se esiste
+                    if (proposta.secondaCartaProposta) {
+
+                        await dbConnection.collection("Utenti").updateOne(
+                            { _id: ObjectId.createFromHexString(idUtente) },
+                            { $addToSet: { figurine: proposta.secondaCartaProposta } }
+                        );
+
+                        await dbConnection.collection("Utenti").updateOne(
+                            { _id: ObjectId.createFromHexString(proposta.utente) },
+                            { $pull: { figurine: proposta.secondaCartaProposta } }
+                        );
+                    }
+
+                    // Aggiorna l'utente che ha creato la proposta CONTROLLO DEBUG DA ELIMINARE (funzione tolta perchè le sue operazioni forse sono duplicate nelle righe appena sopra)
+                    /* await dbConnection.collection("Utenti").updateOne(
+                        { _id: ObjectId.createFromHexString(proposta.utente) },
+                        {
+                            $pull: {
+                                figurine: proposta.cartaProposta,
+                                ...(proposta.secondaCartaProposta && { figurine: proposta.secondaCartaProposta })
+                            },
+                            $addToSet: { figurine: proposta.cartaRichiesta }
+                        }
+                    ); */
+
+                    // Elimina la proposta di scambio dal database
+                    await dbConnection.collection("ProposteScambio").deleteOne({ _id: ObjectId.createFromHexString(idProposta) });
+
+                    res.status(200).json({
+                        "outcome": true,
+                        "message": "Proposta di scambio accettata con successo"
+                    });
+                } else {
+                    res.status(400).json({
+                        "outcome": false,
+                        "message": "Non possiedi la carta richiesta per accettare lo scambio"
+                    });
+                }
+            } else {
+                res.status(404).json({
+                    "outcome": false,
+                    "message": "Utente non trovato"
+                });
+            }
+        } else {
+            res.status(404).json({
+                "outcome": false,
+                "message": "Proposta di scambio non trovata"
+            });
+        }
+    } catch (e) {
+        console.error(e);
+        res.status(500).send("Errore durante l'accettazione della proposta di scambio, codice errore: " + e.code);
+    }
+}
+
 /* ----------------------------------------------------------------------- PATHS --------------------------------------------------------------------------- */
 
 // Path per la registrazione dell'utente
@@ -534,6 +672,21 @@ app.post('/utente/:id/decrementaPacchetti', async(req, res) => {
 app.post('/utente/:id/aggiungiFigurine', async(req, res) => {
     await aggiungiFigurine(req.params.id, req.body, res);
 })
+
+// Path per ottenere tutte le proposte di scambio
+app.get('/proposteScambio', async (req, res) => {
+    await getProposteScambio(res);
+});
+
+// Path per aggiungere una nuova proposta di scambio
+app.post('/utente/:id/proposteScambio', async (req, res) => {
+    await aggiungiPropostaScambio(req.params.id, req.body, res);
+});
+
+// Path per accettare una proposta di scambio
+app.post('/utente/:id/accettaProposta/:idProposta', async (req, res) => {
+    await accettaPropostaScambio(req.params.id, req.params.idProposta, res);
+});
 
 // Path l'ascolto del server sulla porta 3000
 app.listen(port, () => {

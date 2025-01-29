@@ -39,3 +39,10 @@ footer {
     overflow-y: auto; /* Aggiunta della scrollbar verticale */
     padding: 10px;
 }
+
+.card-img-top {
+    width: 100%;
+    max-width: 450px; /* Imposta una larghezza massima per le immagini */
+    height: 450px; /* Imposta un'altezza fissa per rendere le immagini quadrate */
+    object-fit: cover; /* Taglia l'immagine per adattarla alla card */
+}

@@ -177,7 +177,7 @@ async function popolazionePreferito(){
         .then(response => {
             nome_pref.innerHTML = response.data.results[0].name;
             immagine_pref.src = response.data.results[0].thumbnail.path + "." + response.data.results[0].thumbnail.extension;
-            dettagli_pref.href = `Dettagli_supereroe.html?id=${idSupereroePreferito}`;
+            dettagli_pref.href = `Info_supereroe.html?id=${idSupereroePreferito}`;
             numero_fumetti.innerHTML = response.data.results[0].comics.available + " fumetti/o";
             numero_serie.innerHTML = response.data.results[0].series.available + " serie";
             numero_storie.innerHTML = response.data.results[0].stories.available + " storie/a";   
@@ -189,28 +189,4 @@ async function popolazionePreferito(){
     });
 
     adattamentoThumbnail();
-}
-
-//Funzione per regolare il padding della card in base ad un immagine quadrata o rettangolare
-function adattamentoThumbnail(){
-    let immagine_pref = document.getElementById("immagine_pref");
-    let div_immagine_pref = document.getElementById("div_immagine_pref");
-
-    immagine_pref.onload = function(){
-
-        console.log(immagine_pref.naturalWidth);        //CONTROLLO DEBUG DA ELIMINARE
-        console.log(immagine_pref.naturalHeight);       //CONTROLLO DEBUG DA ELIMINARE
-
-        if(immagine_pref.naturalWidth == immagine_pref.naturalHeight){
-            immagine_pref.classList.remove("rounded-end");
-            div_immagine_pref.classList.remove("ms-auto");
-            immagine_pref.classList.add("rounded");
-            immagine_pref.classList.add("classeImgEroe");
-        }else{
-            div_immagine_pref.classList.add("ms-auto");
-            immagine_pref.classList.remove("classeImgEroe");
-            immagine_pref.classList.remove("rounded");
-            immagine_pref.classList.add("rounded-end");
-        }
-    }
 }
