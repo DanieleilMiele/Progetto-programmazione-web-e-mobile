@@ -49,7 +49,7 @@
     </nav>
 
     <!-- Main content -->
-    <div class="container mt-4">
+    <div class="container mt-4">      
         <div class="row align-items-stretch">
             <!-- Sezione scambi disponibili -->
             <div class="col-md-6">
@@ -110,7 +110,7 @@
 
                                 </datalist>
                             </div>
-                            <button type="button" class="btn btn-primary" id="btn-proponi-scambio">Proponi Scambio</button>
+                            <button type="button" class="btn btn-primary" id="btn-proponi-scambio" onclick="proponiScambio()">Proponi Scambio</button>
                             <button type="button" class="btn btn-success" id="btn-scambio-doppio">Proponi Scambio Doppio</button>
                         </form>
                     </div>
@@ -123,10 +123,10 @@
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
         crossorigin="anonymous"></script>
     <script src="../JS/Comune.js"></script>
-    <script src="../JS/Marketplace.js"></script>
+    <script src="../JS/Marketplace.js" defer></script>
 
     <script>
-        /* checkLog(); */
+        checkLog();
     </script>
 </body>
 

@@ -140,7 +140,7 @@ async function getAlbum(id,res){
     try{
         await client.connect();
         dbConnection = client.db("AFSE");  
-        console.log("Qua ci arrivo?");          //CONTROLLO DEBUG DA ELIMINARE
+        
         let utente = await dbConnection.collection("Utenti").findOne({_id: ObjectId.createFromHexString(id)});
         
         if(utente != null){
@@ -148,12 +148,12 @@ async function getAlbum(id,res){
                 messaggio: "id utente trovato",
                 figurine: utente.album                 //Nel db l'utente ha una voce Album che è un array di id delle figurine che ha trovato nei pacchetti
             });
-            console.log("Qua invece?");         //CONTROLLO DEBUG DA ELIMINARE
+            
         }else{
             res.status(404).send("Utente non trovato");
         }
 
-        console.log("Qua è la fine");            //CONTROLLO DEBUG DA ELIMINARE
+        
     }catch(e){
         console.error(e);
         res.status(500).send("Errore generico del server, codice errore: "+e.code);
@@ -500,14 +500,15 @@ async function aggiungiPropostaScambio(id_utente, body, res) {
 
         // Creazione dell'oggetto proposta di scambio
         const proposta = {
-            utente: id_utente,
-            cartaProposta: body.cartaProposta,
-            secondaCartaProposta: body.secondaCartaProposta, // Potrebbe essere undefined
-            cartaRichiesta: body.cartaRichiesta,
+            idUtente: id_utente,
+            nomeUtente: body.nomeUtente,
+            idCartaProposta: body.idCartaProposta,
+            idSecondaCartaProposta: body.idSecondaCartaProposta, // Potrebbe essere undefined
+            idCartaRichiesta: body.idCartaRichiesta,
             dataProposta: new Date()
         };
 
-        const risultato = await dbConnection.collection("ProposteScambio").insertOne(proposta);
+        const risultato = await dbConnection.collection("ProposteScambio").insertOne(proposta);     //Inserimento della proposta di scambio
 
         if (risultato.acknowledged) {
             res.status(200).json({

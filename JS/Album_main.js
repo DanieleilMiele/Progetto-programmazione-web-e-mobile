@@ -6,6 +6,15 @@ barra_ricerca.addEventListener('keydown', function onEvent(event) {
     }
 });
 
+//EventListener per capire quando l'utente cambia pagina
+let numero_pagina = document.getElementById('numero_pagina');
+numero_pagina.addEventListener('input', function() {
+    let pagina = numero_pagina.value;
+    console.log("Input numero pagina cliccato, ora il valore è: "+pagina);   //CONTROLLO DEBUG DA ELIMINARE
+
+    localStorage.setItem("pagina_corrente",pagina);     //Salvo la pagina corrente nel localStorage
+    
+});
 
 //Funzione per la restituzione degli id delle figurine possedute dall'utente
 function getIdFigurine(){
@@ -73,7 +82,7 @@ async function getCloniFigurine(fig_visualizzate){
     //BLOCCO REPERIMENTO ID SUPEREROI POSSEDUTI DALL'UTENTE
     let arr_figurine_utente = await getIdFigurine();     //Array di id delle figurine dell'utente
 
-    
+
     //BLOCCO CREAZIONE FIGURINE
     const figurina = document.getElementById('figurina_template');     //Template vuoto per la creazione delle figurine
     /* let inputUtente = document.getElementById("input_ricerca_figurina"); */
@@ -156,18 +165,29 @@ async function getCloniFigurine(fig_visualizzate){
             errore.classList.remove('d-none');            //Mostro il messaggio di errore
         }
     }else{
+        //Se l'utente non ha inserito nulla nella barra di ricerca si procede con la creazione di tutte le figurine possedute dall'utente       
 
-        //Se l'utente non ha inserito nulla nella barra di ricerca si procede con la creazione di tutte le figurine possedute dall'utente
-        for(let i = 0; i < localStorage.getItem("fig_visualizzate"); i++){
+        maxArray = arr_figurine_utente.length;     //Numero massimo di figurine possedute dall'utente
+        pagina_corrente = localStorage.getItem("pagina_corrente");     //Pagina corrente dell'album
+
+        console.log("Fig visualizzate: "+fig_visualizzate + " Pagina corrente: "+pagina_corrente + " Max array: "+maxArray);   //CONTROLLO DEBUG DA ELIMINARE  (fig_visualizzate*(pagina_corrente-1))
+        for(i = 0; i < localStorage.getItem("fig_visualizzate"); i++){
             
+            offset = (fig_visualizzate*(pagina_corrente-1)) + i;     //Offset per prendere le figurine in base alla pagina corrente e al numero di figurine visualizzate
+            console.log("Offset: "+offset);   //CONTROLLO DEBUG DA ELIMINARE
             console.log("Sto per fare la fetch (senza input di testo) alla marvel di merda");   //CONTROLLO DEBUG DA ELIMINARE
 
             //Cerco il supereroe tramite l'id del ciclo corrente
-            await fetch(`http://gateway.marvel.com/v1/public/characters/${arr_figurine_utente[i].id}?apikey=${public_key}`)
+            
+            if(offset >= maxArray){     //Se l'offset è maggiore del numero di figurine possedute dall'utente allora non ci sono più figurine da mostrare
+                break;
+            }
+
+            await fetch(`http://gateway.marvel.com/v1/public/characters/${arr_figurine_utente[offset].id}?apikey=${public_key}`)
             .then(response => response.json())
             .then(response => {
 
-              /*   console.log("\n\nResponse del ciclo"+i+": \n" + JSON.stringify(response));   //CONTROLLO DEBUG DA ELIMINARE */
+                /* console.log("\n\nResponse del ciclo"+i+": \n" + JSON.stringify(response));   //CONTROLLO DEBUG DA ELIMINARE */
 
                 if(i==0){                   /* Prendo questi elementi solo al primo ciclo essendo cose che non variano */
                     linkLegale.innerHTML = response.attributionText;     /* Aggiorno il testo del link legale con quello fornito dalla risposta */
