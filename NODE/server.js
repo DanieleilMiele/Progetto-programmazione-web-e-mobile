@@ -516,7 +516,7 @@ async function aggiungiPropostaScambio(id_utente, body, res) {
                 "message": "Proposta di scambio aggiunta con successo"
             });
         } else {
-            res.status(500).json({
+            res.status(400).json({
                 "outcome": false,
                 "message": "Errore durante l'aggiunta della proposta di scambio"
             });
@@ -536,12 +536,18 @@ async function accettaPropostaScambio(idUtente, idProposta, res) {
         // Recupera la proposta di scambio
         const proposta = await dbConnection.collection("ProposteScambio").findOne({ _id: ObjectId.createFromHexString(idProposta) });
 
+        // Controllo che la proposta di scambio da accettare esista
         if (proposta) {
             const utente = await dbConnection.collection("Utenti").findOne({ _id: ObjectId.createFromHexString(idUtente) });    // Vado a prendere le info dell'utente che ha accettato la proposta
 
-            // Ricontrollo per sicurezza, anche lato server, che l'utente abbia la carta richiesta per lo scambio
+            // Controllo che l'utente che sta accettando la proposta sia corretto           
             if (utente) {
-                if (utente.figurine.includes(proposta.cartaRichiesta)) {    
+
+                // Ricontrollo, per sicurezza, anche lato server che l'utente abbia la carta richiesta per lo scambio
+                const verifica = await verificaValiditaScambio(utente, proposta);
+
+                if (verifica.valido) {   
+                    
                     // Esegui lo scambio:
                     // Rimuovi la carta richiesta dall'utente che accetta
                     await dbConnection.collection("Utenti").updateOne(
@@ -591,7 +597,7 @@ async function accettaPropostaScambio(idUtente, idProposta, res) {
                 } else {
                     res.status(400).json({
                         "outcome": false,
-                        "message": "Non possiedi la carta richiesta per accettare lo scambio"
+                        "message": "La funzione di verifica ha restituito il seguente errore: "+verifica.message
                     });
                 }
             } else {
@@ -611,6 +617,42 @@ async function accettaPropostaScambio(idUtente, idProposta, res) {
         res.status(500).send("Errore durante l'accettazione della proposta di scambio, codice errore: " + e.code);
     }
 }
+
+// Funzione per verificare anche lato server per sicurezza se l'utente può accettare uno scambio
+async function verificaValiditaScambio(utente, proposta) {
+    try {
+        
+        if (!utente) {
+            return { valido: false, message: "Utente non trovato" };
+        }
+
+        // Controllo se l'utente possiede la carta richiesta
+        const cartaRichiesta = utente.figurine.find(figurina => figurina.id == proposta.idCartaRichiesta);
+        if (!cartaRichiesta) {
+            return { valido: false, message: "Non possiedi la carta richiesta per accettare lo scambio" };
+        }
+
+        // Controllo se l'utente possiede già la carta proposta
+        const cartaProposta = utente.figurine.find(figurina => figurina.id == proposta.idCartaProposta);
+        if (cartaProposta) {
+            return { valido: false, message: "Non puoi accettare lo scambio perché possiedi già la carta proposta" };
+        }
+
+        // Controllo se l'utente possiede già la seconda carta proposta (se esiste)
+        if (proposta.idSecondaCartaProposta) {
+            const secondaCartaProposta = utente.figurine.find(figurina => figurina.id == proposta.idSecondaCartaProposta);
+            if (secondaCartaProposta) {
+                return { valido: false, message: "Non puoi accettare lo scambio perché possiedi già la seconda carta proposta" };
+            }
+        }
+
+        return { valido: true }; // Se supera tutti i controlli, lo scambio è valido
+    } catch (e) {
+        console.error("Errore nella verifica dello scambio:", e);
+        return { valido: false, message: "Errore interno durante la verifica dello scambio" + e.message };
+    }
+}
+
 
 /* ----------------------------------------------------------------------- PATHS --------------------------------------------------------------------------- */
 

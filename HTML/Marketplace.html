@@ -50,14 +50,14 @@
 
     <!-- Main content -->
     <div class="container mt-4">      
-        <div class="row align-items-stretch">
+        <div class="row">
             <!-- Sezione scambi disponibili -->
             <div class="col-md-6">
-                <div class="card h-100 shadow">
+                <div class="card h-10 shadow" style="min-height: 240px;">
                     <div class="card-header bg-dark text-white">
                         Scambi Disponibili
                     </div>
-                    <div class="card-body" style="overflow-y: auto;">
+                    <div class="card-body" style="max-height: 400px; overflow-y: auto; display: block;">
                         <ul id="lista-scambi" class="list-group">
                             <!-- Template per gli scambi -->
                             <li class="list-group-item d-none" id="template-scambio">
@@ -79,7 +79,7 @@
 
             <!-- Sezione proposta scambio -->
             <div class="col-md-6">
-                <div class="card h-100 shadow">
+                <div class="card shadow">
                     <div class="card-header bg-dark text-white">
                         Proponi uno Scambio
                     </div>
