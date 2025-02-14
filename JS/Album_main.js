@@ -58,10 +58,10 @@ async function svuotaAlbum(){
 //Funzione che basandosi sull'array di id delle figurine dell'utente crea e aggiunge all'album le figurine stesse oppure mostra 
 //i supereroi cercati dall'utente corrispondenti alla ricerca fatta dall'utente
 async function getCloniFigurine(fig_visualizzate){
-
+    console.log("getCloniFigurine chiamata");   //CONTROLLO DEBUG DA ELIMINARE
     //BLOCCO SVUOTAMENTO ALBUM
     await svuotaAlbum();
-
+    console.log("gCF: Album svuotato");   //CONTROLLO DEBUG DA ELIMINARE
     //BLOCCO GESTIONE NUMERO ELEMENTI PER PAGINA
     if(fig_visualizzate == undefined){
 
@@ -69,6 +69,8 @@ async function getCloniFigurine(fig_visualizzate){
         if(localStorage.getItem("fig_visualizzate") == null){
             
             fig_visualizzate = 10;
+            localStorage.setItem("fig_visualizzate", 10);
+            
         }else{
 
             fig_visualizzate = localStorage.getItem("fig_visualizzate");
@@ -79,9 +81,11 @@ async function getCloniFigurine(fig_visualizzate){
         localStorage.setItem("fig_visualizzate",fig_visualizzate);
     }
     
+    console.log("gCF: settato il n di figurine per pagina")  //CONTROLLO DEBUG DA ELIMINARE
+
     //BLOCCO REPERIMENTO ID SUPEREROI POSSEDUTI DALL'UTENTE
     let arr_figurine_utente = await getIdFigurine();     //Array di id delle figurine dell'utente
-
+    console.log("gCF: ottenuto array figurine utente")  //CONTROLLO DEBUG DA ELIMINARE
 
     //BLOCCO CREAZIONE FIGURINE
     const figurina = document.getElementById('figurina_template');     //Template vuoto per la creazione delle figurine
@@ -93,6 +97,11 @@ async function getCloniFigurine(fig_visualizzate){
     if(valInputUtente != ""){       //Se l'utente ha inserito un valore nella barra di ricerca
         console.log("Sto per fare la fetch (con input di testo) alla marvel di merda e l'input è: " + valInputUtente);   //CONTROLLO DEBUG DA ELIMINARE
         
+        if(arr_figurine_utente.length != 0){     //Se l'utente ha almeno una figurina allora si procede con la ricerca dei supereroi corrispondenti
+            let errore = document.getElementById("mex_no_fig");     //Messaggio di errore se non ci sono supereroi corrispondenti
+            errore.classList.add('d-none');             //Nascondo il messaggio di errore
+        }
+
         let errore = document.getElementById("mex_no_sup");     //Messaggio di errore se non ci sono supereroi corrispondenti
         let offset = 0;
         let total = 0;
@@ -166,11 +175,12 @@ async function getCloniFigurine(fig_visualizzate){
         }
     }else{
         //Se l'utente non ha inserito nulla nella barra di ricerca si procede con la creazione di tutte le figurine possedute dall'utente       
-
         maxArray = arr_figurine_utente.length;     //Numero massimo di figurine possedute dall'utente
         pagina_corrente = localStorage.getItem("pagina_corrente");     //Pagina corrente dell'album
 
         console.log("Fig visualizzate: "+fig_visualizzate + " Pagina corrente: "+pagina_corrente + " Max array: "+maxArray);   //CONTROLLO DEBUG DA ELIMINARE  (fig_visualizzate*(pagina_corrente-1))
+        console.log("gCF: sono davanti al for") //CONTROLLO DEBUG DA ELIMINARE
+        
         for(i = 0; i < localStorage.getItem("fig_visualizzate"); i++){
             
             offset = (fig_visualizzate*(pagina_corrente-1)) + i;     //Offset per prendere le figurine in base alla pagina corrente e al numero di figurine visualizzate
@@ -226,6 +236,12 @@ async function getCloniFigurine(fig_visualizzate){
                 figurina.before(clone);
             })
         }
+        console.log("gCF: popolazione in teoria effettuata");   //CONTROLLO DEBUG DA ELIMINARE
+    }
+
+    if(arr_figurine_utente.length == 0){     //Se l'utente non ha nessuna figurina
+        let errore = document.getElementById("mex_no_fig");     //Messaggio di errore se non ci sono supereroi corrispondenti
+        errore.classList.remove('d-none');            //Mostro il messaggio di errore
     }
 
     document.getElementById("numero_pagina").disabled = false;      //Selettore del numero di elementi per pagina, lo riabilito alla fine del caricamento delle figurine (lo avevo disabilitato durante lo svuotamento)

@@ -89,11 +89,11 @@ async function registraUtente(utente,res){
                 "message":"Utente registrato con successo",
                 "id":risRegistrazione.insertedId    //insertedId è l'id dell'oggetto inserito (ovvero l'id dell'utente generato da mongo)
             });
-        }res.status(404).json({
+        }else{res.status(404).json({
             "outcome": false,
             "message": "Errore nella registrazione"
-        })
-
+            })
+        }
     }catch(e){
         if(e.code == 11000){
             res.status(500).send("Username o email già in uso");
@@ -536,87 +536,91 @@ async function accettaPropostaScambio(idUtente, idProposta, res) {
         // Recupera la proposta di scambio
         const proposta = await dbConnection.collection("ProposteScambio").findOne({ _id: ObjectId.createFromHexString(idProposta) });
 
-        // Controllo che la proposta di scambio da accettare esista
-        if (proposta) {
-            const utente = await dbConnection.collection("Utenti").findOne({ _id: ObjectId.createFromHexString(idUtente) });    // Vado a prendere le info dell'utente che ha accettato la proposta
-
-            // Controllo che l'utente che sta accettando la proposta sia corretto           
-            if (utente) {
-
-                // Ricontrollo, per sicurezza, anche lato server che l'utente abbia la carta richiesta per lo scambio
-                const verifica = await verificaValiditaScambio(utente, proposta);
-
-                if (verifica.valido) {   
-                    
-                    // Esegui lo scambio:
-                    // Rimuovi la carta richiesta dall'utente che accetta
-                    await dbConnection.collection("Utenti").updateOne(
-                        { _id: ObjectId.createFromHexString(idUtente) },
-                        { $pull: { figurine: proposta.cartaRichiesta } }
-                    );
-
-                    // Aggiungi la carta proposta all'utente che accetta
-                    await dbConnection.collection("Utenti").updateOne(
-                        { _id: ObjectId.createFromHexString(idUtente) },
-                        { $addToSet: { figurine: proposta.cartaProposta } }
-                    );
-
-                    // Gestisci la seconda carta proposta se esiste
-                    if (proposta.secondaCartaProposta) {
-
-                        await dbConnection.collection("Utenti").updateOne(
-                            { _id: ObjectId.createFromHexString(idUtente) },
-                            { $addToSet: { figurine: proposta.secondaCartaProposta } }
-                        );
-
-                        await dbConnection.collection("Utenti").updateOne(
-                            { _id: ObjectId.createFromHexString(proposta.utente) },
-                            { $pull: { figurine: proposta.secondaCartaProposta } }
-                        );
-                    }
-
-                    // Aggiorna l'utente che ha creato la proposta CONTROLLO DEBUG DA ELIMINARE (funzione tolta perchè le sue operazioni forse sono duplicate nelle righe appena sopra)
-                    /* await dbConnection.collection("Utenti").updateOne(
-                        { _id: ObjectId.createFromHexString(proposta.utente) },
-                        {
-                            $pull: {
-                                figurine: proposta.cartaProposta,
-                                ...(proposta.secondaCartaProposta && { figurine: proposta.secondaCartaProposta })
-                            },
-                            $addToSet: { figurine: proposta.cartaRichiesta }
-                        }
-                    ); */
-
-                    // Elimina la proposta di scambio dal database
-                    await dbConnection.collection("ProposteScambio").deleteOne({ _id: ObjectId.createFromHexString(idProposta) });
-
-                    res.status(200).json({
-                        "outcome": true,
-                        "message": "Proposta di scambio accettata con successo"
-                    });
-                } else {
-                    res.status(400).json({
-                        "outcome": false,
-                        "message": "La funzione di verifica ha restituito il seguente errore: "+verifica.message
-                    });
-                }
-            } else {
-                res.status(404).json({
-                    "outcome": false,
-                    "message": "Utente non trovato"
-                });
-            }
-        } else {
-            res.status(404).json({
-                "outcome": false,
-                "message": "Proposta di scambio non trovata"
-            });
+        // Semplice controllo che la proposta esista
+        if (!proposta) {
+            res.status(404).json({ "outcome": false, "message": "Proposta di scambio non trovata" });
+            return;
         }
+
+        // Prendo i due protagonisti dello scambio
+        const utenteAccettante = await dbConnection.collection("Utenti").findOne({ _id: ObjectId.createFromHexString(idUtente) });
+        const utenteProponente = await dbConnection.collection("Utenti").findOne({ _id: ObjectId.createFromHexString(proposta.idUtente) });
+
+        // Semplice controllo anche qua che entrambe gli id corrispondano a utenti esistenti
+        if (!utenteAccettante || !utenteProponente) {
+            res.status(404).json({ "outcome": false, "message": "Uno dei due utenti non esiste" });
+            return;
+        }
+
+        // Verifica se l'utente accettante possiede la carta richiesta (controllo backend aggiuntivo per sicurezza)
+        let figurinaAccettante = utenteAccettante.album.find(fig => fig.id == proposta.idCartaRichiesta);
+        if (!figurinaAccettante) {
+            res.status(400).json({ "outcome": false, "message": "L'utente accettante non possiede la carta richiesta" });
+            return;
+        }
+
+        // Funzione per gestire la rimozione di una figurina dall'album
+        async function rimuoviFigurina(idUtente, idCarta) {
+            let utente = await dbConnection.collection("Utenti").findOne({ _id: ObjectId.createFromHexString(idUtente) });
+            let album = utente.album;
+
+            // Nell'eliminazione uso findIndex per trovare la precisa posizione nell'array della figurina da eliminare
+            let i = album.findIndex(fig => fig.id == idCarta);
+            if (i !== -1) {     // Controllino veloce che la figurina esista nel'album (altrimenti mi torna -1)
+                if (album[i].count > 1) {
+                    album[i].count -= 1;  // Se il count è maggiore di 1, decremento solo il count
+                } else {
+                    album.splice(i, 1);   // Se count == 1, la rimuovo del tutto
+                }
+                await dbConnection.collection("Utenti").updateOne(
+                    { _id: ObjectId.createFromHexString(idUtente) },
+                    { $set: { album: album } }
+                );
+            }else{
+                console.log("Figurina non trovata nell'album dell'utente");            //CONTROLLO DEBUG DA ELIMINARE
+            }
+        }
+
+        // Funzione per aggiungere una figurina all'album
+        async function aggiungiFigurina(idUtente, idCarta) {
+            let utente = await dbConnection.collection("Utenti").findOne({ _id: ObjectId.createFromHexString(idUtente) });
+            let album = utente.album;
+
+            // Nell'aggiunta uso find perchè non serve conoscerne la posizione precisa, dobbiamo solo decrementare il count oppure aggiungerla
+            let figurina = album.find(fig => fig.id == idCarta);        // Ritorna true se trova la figurina altrimenti false
+            if (figurina) {
+                figurina.count += 1;  // Se l'utente ha già la figurina, incrementa il count
+            } else {
+                album.push({ id: idCarta, count: 1 });  // Altrimenti, aggiungila con count = 1
+            }
+
+            // Una volta fatto aggiorno l'album dell'utente
+            await dbConnection.collection("Utenti").updateOne({ _id: ObjectId.createFromHexString(idUtente) },{ $set: { album: album } });
+        }
+
+        // Esegui lo scambio
+        await rimuoviFigurina(idUtente, proposta.idCartaRichiesta);
+        await aggiungiFigurina(idUtente, proposta.idCartaProposta);
+        await rimuoviFigurina(proposta.idUtente, proposta.idCartaProposta);
+        await aggiungiFigurina(proposta.idUtente, proposta.idCartaRichiesta);
+
+        // Gestione del caso della seconda carta proposta
+        if (proposta.idSecondaCartaProposta) {
+            await rimuoviFigurina(proposta.idUtente, proposta.idSecondaCartaProposta);
+            await aggiungiFigurina(idUtente, proposta.idSecondaCartaProposta);
+        }
+
+        // Elimina la proposta di scambio dal database
+        await dbConnection.collection("ProposteScambio").deleteOne({ _id: ObjectId.createFromHexString(idProposta) });
+
+        res.status(200).json({ "outcome": true, "message": "Scambio effettuato con successo" });
+
     } catch (e) {
         console.error(e);
         res.status(500).send("Errore durante l'accettazione della proposta di scambio, codice errore: " + e.code);
     }
 }
+
 
 // Funzione per verificare anche lato server per sicurezza se l'utente può accettare uno scambio
 async function verificaValiditaScambio(utente, proposta) {
@@ -627,20 +631,24 @@ async function verificaValiditaScambio(utente, proposta) {
         }
 
         // Controllo se l'utente possiede la carta richiesta
-        const cartaRichiesta = utente.figurine.find(figurina => figurina.id == proposta.idCartaRichiesta);
+
+        console.log("funzione verificaValiditàScambio: Utente ricevuto:", utente);
+        console.log("funzione verificaValiditàScambio: Figurine dell'utente:", utente.album);   
+
+        const cartaRichiesta = utente.album.find(figurina => figurina.id == proposta.idCartaRichiesta);
         if (!cartaRichiesta) {
             return { valido: false, message: "Non possiedi la carta richiesta per accettare lo scambio" };
         }
 
         // Controllo se l'utente possiede già la carta proposta
-        const cartaProposta = utente.figurine.find(figurina => figurina.id == proposta.idCartaProposta);
+        const cartaProposta = utente.album.find(figurina => figurina.id == proposta.idCartaProposta);
         if (cartaProposta) {
             return { valido: false, message: "Non puoi accettare lo scambio perché possiedi già la carta proposta" };
         }
 
         // Controllo se l'utente possiede già la seconda carta proposta (se esiste)
         if (proposta.idSecondaCartaProposta) {
-            const secondaCartaProposta = utente.figurine.find(figurina => figurina.id == proposta.idSecondaCartaProposta);
+            const secondaCartaProposta = utente.album.find(figurina => figurina.id == proposta.idSecondaCartaProposta);
             if (secondaCartaProposta) {
                 return { valido: false, message: "Non puoi accettare lo scambio perché possiedi già la seconda carta proposta" };
             }
@@ -658,7 +666,7 @@ async function verificaValiditaScambio(utente, proposta) {
 
 // Path per la registrazione dell'utente
 app.post('/registrazioneUtente', async (req, res) => {
-    if(checkCampi(body, res)){
+    if(checkCampi(req.body, res)){
         req.body.password = hash(req.body.password);
         await registraUtente(req.body, res);
     }
