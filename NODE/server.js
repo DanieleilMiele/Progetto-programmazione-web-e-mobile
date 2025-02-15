@@ -213,15 +213,10 @@ async function cambioPassword(body,res){
 
         let user = await dbConnection.collection("Utenti").findOne({_id: ObjectId.createFromHexString(id_utente)});       //Prendo la password vecchia dell'utente
         let hashPswVecchia = user.password;
-        console.log("vecchia psw: "+hashPswVecchia);            //CONTROLLO DEBUG DA ELIMINARE
-        console.log("nuova psw: "+hashPsw);                   //CONTROLLO DEBUG DA ELIMINARE
-        
 
         if(hashPswVecchia != hashPsw){          //Controllo che la password vecchia non sia uguale alla nuova
 
             let esitoModifica = await dbConnection.collection("Utenti").updateOne({_id: ObjectId.createFromHexString(id_utente)},{$set:{"password":hashPsw}});
-
-            console.log(JSON.stringify(esitoModifica));  //CONTROLLO DEBUG DA ELIMINARE
 
             if(esitoModifica.modifiedCount == 1){
                 res.status(200).json({"messaggio": "Password cambiata con successo", "esito": true});
@@ -364,7 +359,6 @@ async function aggiungiFigurine(id, body, res){
 
         //Qua passo l'array di POSIZIONI delle figurine che vanno tramutate negli eroi che corrispondono a quelle posizioni tramite l'api marvel
         let arrayPosizioniFigurine = body.arrayFigurine;          //Prendo l'array di figurine che l'utente ha aperto
-        console.log("Array di posizioni delle figurine\n" + arrayPosizioniFigurine);            //CONTROLLO DEBUG DA ELIMINARE
 
         let arrayFigurineNuove = [];        //Array che conterrà gli id delle figurine aperte dall'utente
 
@@ -384,8 +378,6 @@ async function aggiungiFigurine(id, body, res){
             })
         }
 
-        console.log("Array di effettivi id delle figurine\n" + arrayFigurineNuove);            //CONTROLLO DEBUG DA ELIMINARE
-
         await client.connect();
         dbConnection = client.db("AFSE");
 
@@ -396,18 +388,13 @@ async function aggiungiFigurine(id, body, res){
         do{
             let utenteCorrente = await dbConnection.collection("Utenti").findOne({_id: ObjectId.createFromHexString(id)});
             let arrayFigurineVecchie = utenteCorrente.album;        //Prendo l'array di figurine che l'utente ha già
-            console.log("Array di effettivi id delle figurine vecchie\n" + JSON.stringify(arrayFigurineVecchie));            //CONTROLLO DEBUG DA ELIMINARE
 
-            console.log("Lunghezza array figurine vecchie: " + arrayFigurineVecchie.length);            //CONTROLLO DEBUG DA ELIMINARE
             if(arrayFigurineVecchie.length != 0){
                 //Se l'utente ha già delle figurine nel suo album...
 
-                console.log("Utente ha già delle figurine");            //CONTROLLO DEBUG DA ELIMINARE
                 checkPrimaFigurina = false;         //Indico che non siamo alla prima figurina trovata dall'utente in caso la precedente fosse stata la prima
 
                 for(let i=0; i<arrayFigurineNuove.length; i++){
-
-                    console.log("Iterazione nel for di controllo doppioni numero " + i);            //CONTROLLO DEBUG DA ELIMINARE
 
                     //Cerco la figurina nuova tra quelle vecchie
                     let esitoRicercaFigurina = arrayFigurineVecchie.find(figurinaVecchia => figurinaVecchia.id == arrayFigurineNuove[i]);
@@ -419,10 +406,7 @@ async function aggiungiFigurine(id, body, res){
                         if(!(esitoModifica.acknowledged)){
                             //Se l'operazione di aggiunta della nuova figurina non va a buon fine...
                             checkInteraOperazione = false;
-                            console.log("Errore durante l'aggiunta delle figurine (doppione) all'iterazione numero " + i);            //CONTROLLO DEBUG DA ELIMINARE
                             break;
-                        }else{
-                            console.log("Figurina doppione incrementata con successo");            //CONTROLLO DEBUG DA ELIMINARE
                         }
 
                     }else{
@@ -436,18 +420,13 @@ async function aggiungiFigurine(id, body, res){
                         if(!(esitoModifica.acknowledged)){
                             //Se l'operazione di aggiunta della nuova figurina non va a buon fine...
 
-                            checkInteraOperazione = false;
-                            console.log("Errore durante l'aggiunta delle figurine (non doppione) all'iterazione numero " + i);            //CONTROLLO DEBUG DA ELIMINARE
+                            checkInteraOperazione = fals
                             break;
-                        }else{
-                            console.log("Figurina non doppione aggiunta con successo");            //CONTROLLO DEBUG DA ELIMINARE
                         }
                     }
                 }
             }else{
                 //Se l'utente non ha nessuna figurina nel suo album...
-
-                console.log("E' la prima figurina dell'utente");            //CONTROLLO DEBUG DA ELIMINARE
 
                 checkPrimaFigurina = true;        //Indico che siamo alla prima figurina trovata dall'utente
 
@@ -458,11 +437,9 @@ async function aggiungiFigurine(id, body, res){
                 esitoModifica = await dbConnection.collection("Utenti").updateOne({_id: ObjectId.createFromHexString(id)},{$push:{"album":nuovoOggettoFigurina}});        //Aggiungo la nuova figurina all'album dell'utente
 
                 if(esitoModifica.acknowledged){
-                    console.log("Prima figurina aggiunta con successo");            //CONTROLLO DEBUG DA ELIMINARE
                     checkInteraOperazione = true;
                 }else{
                     checkInteraOperazione = false;
-                    console.log("Errore durante l'aggiunta della prima figurina all'album dell'utente");            //CONTROLLO DEBUG DA ELIMINARE
                 }
             }
 
@@ -573,13 +550,6 @@ async function accettaPropostaScambio(idUtente, idProposta, res) {
             return;
         }
 
-        /* // Verifica se l'utente accettante possiede la carta richiesta (controllo backend aggiuntivo per sicurezza)              //CONTROLLO DEBUG DA ELIMINARE
-        let figurinaAccettante = utenteAccettante.album.find(fig => fig.id == proposta.idCartaRichiesta);
-        if (!figurinaAccettante) {
-            res.status(400).json({ "outcome": false, "message": "L'utente accettante non possiede la carta richiesta" });
-            return;
-        } */
-
         // Funzione per gestire la rimozione di una figurina dall'album
         async function rimuoviFigurina(idUtente, idCarta) {
             let utente = await dbConnection.collection("Utenti").findOne({ _id: ObjectId.createFromHexString(idUtente) });
@@ -597,8 +567,6 @@ async function accettaPropostaScambio(idUtente, idProposta, res) {
                     { _id: ObjectId.createFromHexString(idUtente) },
                     { $set: { album: album } }
                 );
-            }else{
-                console.log("Figurina non trovata nell'album dell'utente");            //CONTROLLO DEBUG DA ELIMINARE
             }
         }
 
@@ -652,10 +620,6 @@ async function verificaValiditaScambio(utente, proposta) {
         }
 
         // Controllo se l'utente possiede la carta richiesta
-
-        console.log("funzione verificaValiditàScambio: Utente ricevuto:", utente);
-        console.log("funzione verificaValiditàScambio: Figurine dell'utente:", utente.album);   
-
         const cartaRichiesta = utente.album.find(figurina => figurina.id == proposta.idCartaRichiesta);
         if (!cartaRichiesta) {
             return { valido: false, message: "Non possiedi la carta richiesta per accettare lo scambio" };
@@ -1007,7 +971,6 @@ app.get('/utente/:id/info', async (req, res) => {
 
 app.post('/utente/:id/cambioPsw', async (req, res) => {
     if(checkCampi(req.body,res)){
-        console.log("Psw pre hash: "+req.body.password);            //CONTROLLO DEBUG DA ELIMINARE
         req.body.password = hash(req.body.password);
         await cambioPassword(req.body, res);
     }

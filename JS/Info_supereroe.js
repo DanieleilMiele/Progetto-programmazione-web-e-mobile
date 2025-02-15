@@ -119,7 +119,6 @@ async function popolaSezione(template, arrayTitoli, MsgSezioneVuota){
             let clone = template.cloneNode(true);         //Creo un clone del template passato come parametro
 
             //Modifico le informazioni del clone e poi lo aggiungo prima del template
-            console.log("Aggiunto un clone di " + MsgSezioneVuota);
             clone.innerHTML = arrayTitoli[i].name;
             clone.classList.remove("d-none");
             template.before(clone);

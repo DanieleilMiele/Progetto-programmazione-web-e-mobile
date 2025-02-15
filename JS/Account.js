@@ -6,10 +6,7 @@ function getNomeBenvenuto(){
     fetch(`http://localhost:3000/utente/${idUtente}/info`)
     .then(response => response.json())
     .then(response => {
-        console.log(response.username);
         paragrafoNome.innerHTML = `Benvenuto ${response.username}!`;
-
-        console.log("Fetch al benvenuto effettuata");   //CONTROLLO DEBUG DA ELIMINARE
     });
 
     
@@ -37,8 +34,6 @@ function popolazioneDettagliAccount(){
         //Rimetto il disabled
         username.setAttribute("disabled","true");
         email.setAttribute("disabled","true");
-
-        console.log("Fetch ai dettagli dell'account effettuata");   //CONTROLLO DEBUG DA ELIMINARE
     });
 
     
@@ -91,22 +86,16 @@ function cambiaPassword(){
         fetch(`http://localhost:3000/utente/${idUtente}/cambioPsw`, options)
         .then(response => response.json())
         .then(response => {
-            console.log(JSON.stringify(response));  //CONTROLLO DEBUG DA ELIMINARE
 
             if(response.esito != false){
-                console.log("Password cambiata con successo");  //CONTROLLO DEBUG DA ELIMINARE
                 disattivaCambiaPassword();  
             }else{
-                console.log("La nuova password non può essere uguale alla precedente")  //CONTROLLO DEBUG DA ELIMINARE
                 let alertStessaPsw = document.getElementById("alertStessaPsw");
 
                 alertStessaPsw.classList.remove("d-none");
             }
         });
-
-    }else{
-        console.log("Password non ha rispettato i parametri del controllo client-side");  //CONTROLLO DEBUG DA ELIMINARE
-    }   
+    } 
 }
 
 //Controllo che la password rispetti i parametri richiesti
@@ -144,7 +133,6 @@ function eliminaAccount(){
     fetch(`http://localhost:3000/utente/${idUtente}/eliminaAccount`, options)
     .then(response => response.json())
     .then(response => {
-        console.log(JSON.stringify(response));  //CONTROLLO DEBUG DA ELIMINARE
 
         if(response.esito != false){
             localStorage.clear();   //Pulisco il localstorage dai dati dell'utente

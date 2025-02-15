@@ -41,10 +41,7 @@ function acquistaCrediti(){
     .then(response => response.json())
     .then(response => {
         if(response.esito){
-            console.log("Acquisto crediti effettuato");
             checkCreditiPacchetti();    //Aggiorno i crediti mostrati nel bean nella navbar
-        }else{
-            console.log("Acquisto crediti non effettuato");
         }
     })
 }
@@ -73,18 +70,14 @@ async function acquistaPacchetti(){
         .then(response => response.json())
         .then(response => {
             if(response.esito){
-                console.log("Acquisto pacchetti effettuato");
 
                 let alertCreditiIns = document.getElementById("alertCreditiIns"); //Prendo l'alert che mi avvisa che l'utente non ha abbastanza crediti
                 alertCreditiIns.classList.add("d-none");   //Nascondo l'alert
 
                 checkCreditiPacchetti();    //Aggiorno i pacchetti mostrati nel bean nella navbar
 
-            }else{
-                console.log("Acquisto pacchetti non effettuato");
             }
         })
-
     }else{
         let alertCreditiIns = document.getElementById("alertCreditiIns");  //Prendo l'alert che mi avvisa che l'utente non ha abbastanza crediti
         alertCreditiIns.classList.remove("d-none");   //Mostro l'alert
@@ -107,7 +100,6 @@ async function spacchettamento(){
 
     //Mostro finalmente all'utente le 5 figurine estratte
     for(let i=0; i<5; i++){
-        /* console.log("Popolazione " + (i+1) + "° figurina"); */      //CONTROLLO DEBUG DA ELIMINARE
         await fetch(`http://gateway.marvel.com/v1/public/characters?apikey=${public_key}&limit=${1}&offset=${eroiDaEstrarre[i]}`)
         .then(response => response.json())
         .then(response => {
@@ -138,10 +130,8 @@ async function checkMinimoCrediti(){
     let creditiDisponibili = jsonCreditiPacchetti.crediti;      //Isolo dal JSON il numero di crediti posseduti dall'utente
 
     if(creditiDisponibili >= pacchettiDaComprare){      //Controllo che l'utente abbia abbastanza crediti per comprare i pacchetti
-        console.log("L'utente ha abbastanza crediti per comprare i pacchetti");     //CONTROLLO DEBUG DA ELIMINARE
         return true;
     }else{
-        console.log("L'utente non ha abbastanza crediti per comprare i pacchetti");     //CONTROLLO DEBUG DA ELIMINARE
         return false;
     }
 }
@@ -156,10 +146,8 @@ async function estraiEroi(){
     let responseJson = await response.json();
         
     totale = responseJson.data.total;
-    console.log("Id estratti nell funzione estraiEroi():");     //CONTROLLO DEBUG DA ELIMINARE
     for(let i=0; i<5; i++){
         numeriEstratti[i] = Math.floor(Math.random()*totale);   //Genero un numero casuale tra 0 e il totale degli eroi presenti nel database della Marvel
-        console.log(numeriEstratti[i]);                //CONTROLLO DEBUG DA ELIMINARE
     }
     return numeriEstratti;
 }
@@ -198,18 +186,14 @@ async function aggiornamentoNumeroPacchetti(){
     .then(response => {
         
         if(response.esito){
-            console.log("Aggiornamento pacchetti effettuato");     //CONTROLLO DEBUG DA ELIMINARE
             checkCreditiPacchetti();    //Aggiorno i pacchetti mostrati nel bean nella navbar
         }else{
-            console.log("Aggiornamento pacchetti non effettuato");     //CONTROLLO DEBUG DA ELIMINARE
         }
     });
 
 }
 
 async function aggiungiFigurineAlbum(arrayFigurine){
-
-    console.log("Array id figurine che sto passando per l'aggiunta all'album\n" + arrayFigurine);     //CONTROLLO DEBUG DA ELIMINARE
 
     let idUtente = localStorage.getItem("idUtente");
 
@@ -224,17 +208,6 @@ async function aggiungiFigurineAlbum(arrayFigurine){
     }
 
     await fetch(`http://localhost:3000/utente/${idUtente}/aggiungiFigurine`, options)
-    .then(response => response.json())
-    .then(response => {
-        
-        if(response.esito){
-            console.log("Aggiunta figurine all'album effettuata");     //CONTROLLO DEBUG DA ELIMINARE
-        }else{
-            console.log("Aggiunta figurine all'album non effettuata");     //CONTROLLO DEBUG DA ELIMINARE
-        }
-    })
-
-    console.log("La funzione aggiungiFigurineAlbum() è terminata");     //CONTROLLO DEBUG DA ELIMINARE
 }
 
 async function controllaButtonSpacchettamento(){
@@ -254,4 +227,4 @@ async function controllaButtonSpacchettamento(){
 //Controllo ogni 5 secondi se l'utente ha abbastanza pacchetti per abilitare il bottone di spacchettamento
 setInterval( () => {
     controllaButtonSpacchettamento();
-}, 5000);
+}, 3000);

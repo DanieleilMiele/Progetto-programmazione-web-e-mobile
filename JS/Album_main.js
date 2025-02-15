@@ -10,10 +10,7 @@ barra_ricerca.addEventListener('keydown', function onEvent(event) {
 let numero_pagina = document.getElementById('numero_pagina');
 numero_pagina.addEventListener('input', function() {
     let pagina = numero_pagina.value;
-    console.log("Input numero pagina cliccato, ora il valore è: "+pagina);   //CONTROLLO DEBUG DA ELIMINARE
-
     localStorage.setItem("pagina_corrente",pagina);     //Salvo la pagina corrente nel localStorage
-    
 });
 
 //Funzione per la restituzione degli id delle figurine possedute dall'utente
@@ -25,7 +22,6 @@ function getIdFigurine(){
         fetch(`http://localhost:3000/utente/${idUtente}/figurine`)      //Fetch per prendere le figurine dell'utente
         .then(response => response.json())
         .then(response => {
-            /* console.log(response.messaggio);  */       //CONTROLLO DEBUG DA ELIMINARE
             
             let arr_figurine_utente = response.figurine;    //Array di id delle figurine dell'utente
 
@@ -42,14 +38,11 @@ function getIdFigurine(){
 async function svuotaAlbum(){
 
     document.getElementById("numero_pagina").disabled = true;      //Selettore del numero di elementi per pagina, lo disabilito finchè lo svuotamento non è completato, lo abilito di nuovo alla fine del caricamento delle figurine
-    console.log("Disabilito il cambio pagina...");   //CONTROLLO DEBUG DA ELIMINARE
 
     let div_album = document.getElementById("div_album");     //Div contenente tutte le figurine dell'album
     let array_figurine = div_album.children;    //Array di tutte le figurine dell'album
-    console.log("Numero di figurine attualmente nella pagina (template incluso): "+array_figurine.length);   //CONTROLLO DEBUG DA ELIMINARE
 
-    for(let i=array_figurine.length-2; i>=0; i--){                   //Ciclo tutte le figurine dell'album tranne l'ultima che è il template da clonare
-        console.log("Numero ciclo svuotamento: "+i);   //CONTROLLO DEBUG DA ELIMINARE
+    for(let i=array_figurine.length-2; i>=0; i--){                   //Ciclo tutte le figurine dell'album tranne l'ultima che è il template da clonareE
         div_album.removeChild(array_figurine[i]);
     }
 
@@ -58,10 +51,9 @@ async function svuotaAlbum(){
 //Funzione che basandosi sull'array di id delle figurine dell'utente crea e aggiunge all'album le figurine stesse oppure mostra 
 //i supereroi cercati dall'utente corrispondenti alla ricerca fatta dall'utente
 async function getCloniFigurine(fig_visualizzate){
-    console.log("🔍 Debug: getCloniFigurine() chiamata!");  // CONTROLLO DEBUG DA ELIMINARE
     //BLOCCO SVUOTAMENTO ALBUM
     await svuotaAlbum();
-    console.log("gCF: Album svuotato");   //CONTROLLO DEBUG DA ELIMINARE
+
     //BLOCCO GESTIONE NUMERO ELEMENTI PER PAGINA
     if(fig_visualizzate == undefined){
 
@@ -80,12 +72,9 @@ async function getCloniFigurine(fig_visualizzate){
         //Se è stato scelto un nuovo numero di elementi per pagina lo si aggiorna anche nel localStorage
         localStorage.setItem("fig_visualizzate",fig_visualizzate);
     }
-    
-    console.log("gCF: settato il n di figurine per pagina")  //CONTROLLO DEBUG DA ELIMINARE
 
     //BLOCCO REPERIMENTO ID SUPEREROI POSSEDUTI DALL'UTENTE
     let arr_figurine_utente = await getIdFigurine();     //Array di id delle figurine dell'utente
-    console.log("gCF: ottenuto array figurine utente")  //CONTROLLO DEBUG DA ELIMINARE
 
     //BLOCCO CREAZIONE FIGURINE
     const figurina = document.getElementById('figurina_template');     //Template vuoto per la creazione delle figurine
@@ -95,7 +84,6 @@ async function getCloniFigurine(fig_visualizzate){
     let linkLegale = document.getElementById("link_legale");        //Link legale per la marvel
 
     if(valInputUtente != ""){       //Se l'utente ha inserito un valore nella barra di ricerca
-        console.log("Sto per fare la fetch (con input di testo) alla marvel di merda e l'input è: " + valInputUtente);   //CONTROLLO DEBUG DA ELIMINARE
         
         if(arr_figurine_utente.length != 0){     //Se l'utente ha almeno una figurina allora si procede con la ricerca dei supereroi corrispondenti
             let errore = document.getElementById("mex_no_fig");     //Messaggio di errore se non ci sono supereroi corrispondenti
@@ -158,14 +146,10 @@ async function getCloniFigurine(fig_visualizzate){
                         
                         // Imposta l'evento onclick con l'ID della figurina corrente
                         if (!vendiButton) {
-                            console.error("❌ Errore: Pulsante 'Vendi' non trovato nel clone!");
-                        } else {
-                            console.log("✅ Debug: Pulsante 'Vendi' trovato correttamente!");
+                            console.error("Errore: Pulsante 'Vendi' non trovato nel clone!");
                         }
                         
-
                         vendiButton.onclick = function() {
-                            console.log(`📢 Debug: Cliccato su Vendi per la figurina con ID ${idSupereroe}`);
                             vendiFigurina(idSupereroe);
                         };
 
@@ -183,22 +167,16 @@ async function getCloniFigurine(fig_visualizzate){
 
         if(!eroeTrovato){
             //Se nessun eroe con quelle iniziali compare tra le figurine possedute dall'utente allora mostro il messaggio di errore
-            console.log("Supereroe non trovato tra le figurine dell'utente");   //CONTROLLO DEBUG DA ELIMINARE
             errore.classList.remove('d-none');            //Mostro il messaggio di errore
         }
     }else{
         //Se l'utente non ha inserito nulla nella barra di ricerca si procede con la creazione di tutte le figurine possedute dall'utente       
         maxArray = arr_figurine_utente.length;     //Numero massimo di figurine possedute dall'utente
         pagina_corrente = localStorage.getItem("pagina_corrente");     //Pagina corrente dell'album
-
-        console.log("Fig visualizzate: "+fig_visualizzate + " Pagina corrente: "+pagina_corrente + " Max array: "+maxArray);   //CONTROLLO DEBUG DA ELIMINARE  (fig_visualizzate*(pagina_corrente-1))
-        console.log("gCF: sono davanti al for") //CONTROLLO DEBUG DA ELIMINARE
         
         for(i = 0; i < localStorage.getItem("fig_visualizzate"); i++){
             
             offset = (fig_visualizzate*(pagina_corrente-1)) + i;     //Offset per prendere le figurine in base alla pagina corrente e al numero di figurine visualizzate
-            console.log("Offset: "+offset);   //CONTROLLO DEBUG DA ELIMINARE
-            console.log("Sto per fare la fetch (senza input di testo) alla marvel di merda");   //CONTROLLO DEBUG DA ELIMINARE
 
             //Cerco il supereroe tramite l'id del ciclo corrente
             
@@ -209,8 +187,6 @@ async function getCloniFigurine(fig_visualizzate){
             await fetch(`http://gateway.marvel.com/v1/public/characters/${arr_figurine_utente[offset].id}?apikey=${public_key}`)
             .then(response => response.json())
             .then(response => {
-
-                /* console.log("\n\nResponse del ciclo"+i+": \n" + JSON.stringify(response));   //CONTROLLO DEBUG DA ELIMINARE */
 
                 if(i==0){                   /* Prendo questi elementi solo al primo ciclo essendo cose che non variano */
                     linkLegale.innerHTML = response.attributionText;     /* Aggiorno il testo del link legale con quello fornito dalla risposta */
@@ -244,14 +220,11 @@ async function getCloniFigurine(fig_visualizzate){
                 
                 // Imposta l'evento onclick con l'ID della figurina corrente
                 if (!vendiButton) {
-                    console.error("❌ Errore: Pulsante 'Vendi' non trovato nel clone!");
-                } else {
-                    console.log("✅ Debug: Pulsante 'Vendi' trovato correttamente!");
+                    console.error("Errore: Pulsante 'Vendi' non trovato nel clone!");
                 }
 
                 let idFigurina = arr_figurine_utente[offset].id;
                 vendiButton.onclick = function() {
-                    console.log(`📢 Debug: Cliccato su Vendi per la figurina con ID ${idFigurina}`);
                     vendiFigurina(idFigurina);
                 }
 
@@ -263,7 +236,6 @@ async function getCloniFigurine(fig_visualizzate){
                 figurina.before(clone);
             })
         }
-        console.log("gCF: popolazione in teoria effettuata");   //CONTROLLO DEBUG DA ELIMINARE
     }
 
     if(arr_figurine_utente.length == 0){     //Se l'utente non ha nessuna figurina
@@ -335,7 +307,6 @@ function vendiFigurina(figurinaId) {
     .then(response => response.json())
     .then(response => {
         if(response.esito) {
-            console.log("Figurina venduta con successo");  // CONTROLLO DEBUG DA ELIMINARE
             getCloniFigurine(); // Ricarica l'album per aggiornare la lista
         } else {
             console.error("Errore nella vendita della figurina:", response.messaggio);

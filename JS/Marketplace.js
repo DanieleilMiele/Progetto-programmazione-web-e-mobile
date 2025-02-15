@@ -28,24 +28,18 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     mostraProposteScambio();
 
-    console.log("Ottenimento array degli id dei supereroi posseduti dall'utente");    // CONTROLLO DEBUG DA ELIMINARE
     // popolazione tendine per creazione proposte di scambio, fetch alla marvel per recuperare l'array di eroi e poi lo uso sulle 3 chiamate anzichè fare 3 fetch diverse
     const arraySoloId = await getSupereroiPosseduti1();
-    console.log("Array di id ottenuto, trasformazione in array di oggetti con id e nome");    // CONTROLLO DEBUG DA ELIMINARE
     const arraySupereroiPosseduti = await getSupereroiPosseduti2(arraySoloId);
     popolazionePrimaTendina(arraySupereroiPosseduti);
-    console.log("Popolazione prima tendina completata");    // CONTROLLO DEBUG DA ELIMINARE
 
-    console.log("Array di oggetti ottenuto, ottenimento array di tutti i supereroi esistenti");    // CONTROLLO DEBUG DA ELIMINARE
     const arraySupereroiTotali = await getSupereroiDaRichiedere();
-
 
     /* la popolazione della seconda tendina avviene solo nel caso in cui viene fatta una doppia proposta per non fare calcoli inutili */
     popolazioneTendinaRichiesta(arraySupereroiTotali);
-    console.log("Popolazione terza tendina completata");    // CONTROLLO DEBUG DA ELIMINARE
 });
 
-// Funzione per ottenere le proposte di scambio dal server      DA TESTARE - CONTROLLO DEBUG DA ELIMINARE
+// Funzione per ottenere le proposte di scambio dal server      
 async function getProposteScambio() {
     try {
 
@@ -68,7 +62,7 @@ async function getProposteScambio() {
     }
 }
 
-// Funzione per verificare se l'utente possiede una certa carta     DA TESTARE - CONTROLLO DEBUG DA ELIMINARE
+// Funzione per verificare se l'utente possiede una certa carta     
 async function utentePossiedeCarta(idCartaRichiesta) {
     
     idUtente = localStorage.getItem('idUtente');
@@ -90,7 +84,7 @@ async function utentePossiedeCarta(idCartaRichiesta) {
     }
 }
 
-// Funzione per svuotare la lista degli scambi      FUNZIONA - CONTROLLO DEBUG DA ELIMINARE
+// Funzione per svuotare la lista degli scambi      
 function svuotaListaScambi() {
     const listaScambi = document.getElementById('lista-scambi');
     // Rimuove tutti i figli tranne il template
@@ -102,7 +96,7 @@ function svuotaListaScambi() {
     
 }
 
-// Funzione per caricare e clonare le proposte di scambio   DA CONTROLLARE DOPO - CONTROLLO DEBUG DA ELIMINARE
+// Funzione per caricare e clonare le proposte di scambio   
 async function mostraProposteScambio() {
 
     svuotaListaScambi();
@@ -172,14 +166,10 @@ async function mostraProposteScambio() {
         const listaScambi = document.getElementById('lista-scambi');
         listaScambi.appendChild(clone);
     }
-
-    console.log("Fine caricamento proposte di scambio");    // CONTROLLO DEBUG DA ELIMINARE 
 }
 
-// Funzione per ottenere il nome di un eroe a partire dall'id in modo che si veda il nome nella proposta    FUNZIONA, CONTIENE CODICE DI TEST (RIGA CON RESPONSE) - CONTROLLO DEBUG DA ELIMINARE  
+// Funzione per ottenere il nome di un eroe a partire dall'id in modo che si veda il nome nella proposta 
 async function getNomeEroe(idEroe) {
-
-    /* return "Padre Pio Gang test"; */    // CONTROLLO DEBUG DA ELIMINARE
 
     // Anche qui non uso i .then perchè mi serve che la risposta sia completata per poter ritornare la risposta
     response = await fetch(`http://gateway.marvel.com/v1/public/characters/${idEroe}?apikey=${public_key}`);
@@ -193,7 +183,7 @@ async function getNomeEroe(idEroe) {
     
 }
 
-// Funzione per ottenere il nome utente a partire dall'ID in modo da sapere che utente ha fatto una determinata proposta    FUNZIONA - CONTROLLO DEBUG DA ELIMINARE
+// Funzione per ottenere il nome utente a partire dall'ID in modo da sapere che utente ha fatto una determinata proposta    
 async function getNomeUtente(idUtente) {
 
     // Anche qui non uso i .then perchè mi serve che la risposta sia completata per poter ritornare la risposta
@@ -212,15 +202,12 @@ async function getNomeUtente(idUtente) {
     }
 }
 
-// Funzione per accettare una proposta di scambio       DA CONTROLLARE DOPO - CONTROLLO DEBUG DA ELIMINARE
+// Funzione per accettare una proposta di scambio       
 async function accettaProposta(proposta) {
 
-    console.log("Proposta ricevuta come parametro in accettaProposta: ", proposta);    // CONTROLLO DEBUG DA ELIMINARE
     const idProposta = proposta._id;
-    console.log("Sto inviando richiesta con ID:", idProposta);  // CONTROLLO DEBUG DA ELIMINARE
 
     const idUtente = localStorage.getItem('idUtente');
-    console.log("ID Utente:", localStorage.getItem('idUtente'));        // CONTROLLO DEBUG DA ELIMINARE
 
     try {
         await fetch(`http://localhost:3000/utente/${idUtente}/accettaProposta/${idProposta}`, { method: 'POST' })
@@ -239,7 +226,7 @@ async function accettaProposta(proposta) {
     }
 }
 
-// Funzione per aggiungere una nuova proposta di scambio    DA CORREGGERE - CONTROLLO DEBUG DA ELIMINARE
+// Funzione per aggiungere una nuova proposta di scambio    
 async function proponiScambio(){
     
     const secondaCartaGroup = document.getElementById('seconda-carta-proposta-group');
@@ -251,19 +238,16 @@ async function proponiScambio(){
     const nomeCartaProposta = document.getElementById('carta-proposta').value;
     const optionCartaProposta = Array.from(tendina_carte.options).find(option => option.value === nomeCartaProposta);
     const idCartaProposta = optionCartaProposta ? optionCartaProposta.text : false;             // QUA CI CHIAMO UNA FUNZIONE DI CONTROLLO CHE DEVO ANCORA FARE PORCODIO
-    console.log("idCartaProposta: " + idCartaProposta);    // CONTROLLO DEBUG DA ELIMINARE
 
     const tendina2_carte = document.getElementById('tendina2-carte');
     const nomeSecondaCartaProposta = document.getElementById('seconda-carta-proposta').value || undefined;  // Se il campo che cerchiamo di ottenere è vuoto assegno 'undefined' alla variabile 'secondaCartaProposta'.
     const optionSecondaCartaProposta = Array.from(tendina2_carte.options).find(option => option.value === nomeSecondaCartaProposta);
     const idSecondaCartaProposta = optionSecondaCartaProposta ? optionSecondaCartaProposta.text : undefined;           // QUA CI CHIAMO UNA FUNZIONE DI CONTROLLO CHE DEVO ANCORA FARE PORCODIO
-    console.log("idSecondaCartaProposta: " + idSecondaCartaProposta);    // CONTROLLO DEBUG DA ELIMINARE
 
     const tendina_carte_richiesta = document.getElementById('tendina-carte-richiesta');
     const nomeCartaRichiesta = document.getElementById('carta-richiesta').value;
     const optionCartaRichiesta = Array.from(tendina_carte_richiesta.options).find(option => option.value === nomeCartaRichiesta);
     const idCartaRichiesta = optionCartaRichiesta ? optionCartaRichiesta.text : undefined;           // QUA CI CHIAMO UNA FUNZIONE DI CONTROLLO CHE DEVO ANCORA FARE PORCODIO
-    console.log("idCartaRichiesta: " + idCartaRichiesta);    // CONTROLLO DEBUG DA ELIMINARE
 
     const nomeUtente = await getNomeUtente(idUtente);    // Ottengo il nome utente da visualizzare per la proposta
 
@@ -317,14 +301,11 @@ async function proponiScambio(){
         document.getElementById('carta-richiesta').value = "";
         document.getElementById('seconda-carta-proposta').value = "";
         document.getElementById('tendina2-carte').innerHTML = '';
-
-        alert("Porcodio non hai passato i controlli gg")                                        // CONTROLLO DEBUG DA ELIMINARE
-        console.log("PorcodeddioooooOOOOOOOO non hai superato il check dei dati inseriti");    // CONTROLLO DEBUG DA ELIMINARE
     }
 
 }
 
-// Funzione per controllare che i campi della proposta siano corretti       SEMBRA FUNZIONARE - CONTROLLO DEBUG DA ELIMINARE
+// Funzione per controllare che i campi della proposta siano corretti       
 function checkCampiProposta(idPrimaCarta, idSecondaCarta, idCartaRichiesta){
 
     // Controllo che sia stata selezionata almeno una carta proposta e una carta richiesta
@@ -356,17 +337,20 @@ function checkCampiProposta(idPrimaCarta, idSecondaCarta, idCartaRichiesta){
 
 }
 
-//Creazione array di tutti i supereroi esistenti che sarà usato per popolare le tendine     DISATTIVATA CON UN RETURN PER I TEST MA FUNZIONA - CONTROLLO DEBUG DA ELIMINARE 
+//Creazione array di tutti i supereroi esistenti che sarà usato per popolare le tendine    
 async function getSupereroiDaRichiedere() {
 
-    /* // Array di test con due eroi        // CONTROLLO DEBUG DA ELIMINARE
+    // Fetch di test perchè quella completa è troppo lenta        // CONTROLLO DEBUG DA ELIMINARE
+    const superheroesTest = [];
+    await fetch(`http://gateway.marvel.com/v1/public/characters?apikey=${public_key}&limit=50&offset=${300}`)
+    .then(response => response.json())
+    .then(response => {
+        const heroes = response.data.results.map(hero => ({id: hero.id,name: hero.name})); 
+        superheroesTest.push(...heroes);
+    });
 
-    const cazziNeri = [
-        { id: 1017576, name: "terza carta" },
-        { id: 1009206, name: "seconda carta" }
-    ];
+    return superheroesTest;
 
-    return cazziNeri; */
 
     console.log("getSupereroi è lenta per colpa dell'API ma funziona");    // CONTROLLO DEBUG DA ELIMINARE
     let offset = 0;
@@ -397,7 +381,7 @@ async function getSupereroiDaRichiedere() {
     
 }
 
-//Creazione array con solo gli id di tutti i supereroi posseduti dall'utente              DISATTIVATA PER TEST MA FUNZIONA - CONTROLLO DEBUG DA ELIMINARE
+//Creazione array con solo gli id di tutti i supereroi posseduti dall'utente      
 async function getSupereroiPosseduti1(){                      
 
     const idUtente = localStorage.getItem('idUtente');
@@ -413,17 +397,8 @@ async function getSupereroiPosseduti1(){
     }
 }
 
-//Creazione array di tutte le carte che l'utente possiede con id e nome                     DISATTIVATA PER TEST MA FUNZIONA - CONTROLLO DEBUG DA ELIMINARE
+//Creazione array di tutte le carte che l'utente possiede con id e nome           
 async function getSupereroiPosseduti2(arrayEroiId){ 
-
-    /* // Array di test con due eroi        // CONTROLLO DEBUG DA ELIMINARE
-
-    const cazziNeri = [
-        { id: 1009368, name: "Iron Man" },
-        { id: 1009220, name: "Captain America" }
-    ];
-
-    return cazziNeri; */
 
     let arrayEroiIdNome = [];
 
@@ -439,12 +414,11 @@ async function getSupereroiPosseduti2(arrayEroiId){
         arrayEroiIdNome.push(eroe);     //Qua non uso lo spread operator perchè devo aggiungere un solo elemento alla volta e non un insieme di elementi che vanno separati singolarmente
     }
 
-    return arrayEroiIdNome;         //QUESTO FUNZIONA
+    return arrayEroiIdNome;
 }
 
-// Funzione per popolare la tendina per la selezione della prima carta da proporre  FUNZIONA - CONTROLLO DEBUG DA ELIMINARE
+// Funzione per popolare la tendina per la selezione della prima carta da proporre
 function popolazionePrimaTendina(arraySupereroi){
-    console.log("Dentro popolazione prima tendina");    // CONTROLLO DEBUG DA ELIMINARE
 
     const tendina_carte = document.getElementById('tendina-carte');
 
@@ -454,9 +428,8 @@ function popolazionePrimaTendina(arraySupereroi){
     });
 }
 
-// Funzione per popolare la tendina per la selezione della seconda carta da proporre    DA TESTARE - CONTROLLO DEBUG DA ELIMINARE
+// Funzione per popolare la tendina per la selezione della seconda carta da proporre
 function popolazioneSecondaTendina(arraySupereroi){
-    console.log("Dentro popolazione seconda tendina");    // CONTROLLO DEBUG DA ELIMINARE
     /* Il primo valore della option è il testo mentre il secondo è il valore di quella selezione, li devo invertire perché nella datalist dell'html il campo su cui ci si basa è il value*/
     const tendina2_carte = document.getElementById('tendina2-carte');
 
@@ -466,9 +439,8 @@ function popolazioneSecondaTendina(arraySupereroi){
     });
 }
 
-// Funzione per popolare la tendina per la selezione della carta richiesta  FUNZIONA - CONTROLLO DEBUG DA ELIMINARE
+// Funzione per popolare la tendina per la selezione della carta richiesta
 function popolazioneTendinaRichiesta(arraySupereroi){
-    console.log("Dentro popolazione terza tendina");    // CONTROLLO DEBUG DA ELIMINARE
     /* Il primo valore della option è il testo mentre il secondo è il valore di quella selezione, li devo invertire perché nella datalist dell'html il campo su cui ci si basa è il value*/
     const tendina_carte_richiesta = document.getElementById('tendina-carte-richiesta');
 

@@ -24,7 +24,6 @@ async function getSupereroi(){
                 linkLegale.href = response.attributionH;               /* Aggiorno il link legale con quello fornito dalla risposta */
             }
             
-            /* console.log(response); */
             if(i==0){
                 total = response.data.total;
             }
