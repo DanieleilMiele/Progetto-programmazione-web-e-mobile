@@ -359,14 +359,14 @@ function checkCampiProposta(idPrimaCarta, idSecondaCarta, idCartaRichiesta){
 //Creazione array di tutti i supereroi esistenti che sarà usato per popolare le tendine     DISATTIVATA CON UN RETURN PER I TEST MA FUNZIONA - CONTROLLO DEBUG DA ELIMINARE 
 async function getSupereroiDaRichiedere() {
 
-    // Array di test con due eroi        // CONTROLLO DEBUG DA ELIMINARE
+    /* // Array di test con due eroi        // CONTROLLO DEBUG DA ELIMINARE
 
     const cazziNeri = [
         { id: 1017576, name: "terza carta" },
         { id: 1009206, name: "seconda carta" }
     ];
 
-    return cazziNeri;
+    return cazziNeri; */
 
     console.log("getSupereroi è lenta per colpa dell'API ma funziona");    // CONTROLLO DEBUG DA ELIMINARE
     let offset = 0;

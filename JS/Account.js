@@ -72,7 +72,7 @@ function disattivaCambiaPassword(){
 
 //Funzione per l'effettivo cambio della password
 function cambiaPassword(){
-    let password = document.getElementById("password").value;
+    let password = document.getElementById("P").value;
     let idUtente = localStorage.getItem("idUtente");
 
     if( checkPassword(password) ){                   /* Controllo che la password rispetti i parametri richiesti */
@@ -187,6 +187,4 @@ async function popolazionePreferito(){
         });
         
     });
-
-    adattamentoThumbnail();
 }

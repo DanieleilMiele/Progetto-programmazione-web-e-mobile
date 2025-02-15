@@ -58,7 +58,7 @@ async function svuotaAlbum(){
 //Funzione che basandosi sull'array di id delle figurine dell'utente crea e aggiunge all'album le figurine stesse oppure mostra 
 //i supereroi cercati dall'utente corrispondenti alla ricerca fatta dall'utente
 async function getCloniFigurine(fig_visualizzate){
-    console.log("getCloniFigurine chiamata");   //CONTROLLO DEBUG DA ELIMINARE
+    console.log("🔍 Debug: getCloniFigurine() chiamata!");  // CONTROLLO DEBUG DA ELIMINARE
     //BLOCCO SVUOTAMENTO ALBUM
     await svuotaAlbum();
     console.log("gCF: Album svuotato");   //CONTROLLO DEBUG DA ELIMINARE
@@ -144,11 +144,11 @@ async function getCloniFigurine(fig_visualizzate){
                         let descrizione = clone.getElementsByClassName('card-text')[0];
                         let div_descrizione = clone.getElementsByClassName('description-container')[0];
                         let dettagli = clone.getElementsByClassName('card-link')[0];
+                        let vendiButton = clone.getElementsByClassName("btn-danger")[0];
                         
                         /* Nelle variabili legate al clone mettiamo i valori presi dalla response*/
                         nome.innerHTML = response.data.results[i].name;
                         immagine.src = response.data.results[i].thumbnail.path + "." + response.data.results[i].thumbnail.extension;
-                        console.log("\nDescrizione eroe: "+response.data.results[i].description);   //CONTROLLO DEBUG DA ELIMINARE
                         if( (response.data.results[i].description) != "" ){     //Se il supereroe ha una descrizione la mostro
                             div_descrizione.classList.remove('d-none');
                             descrizione.innerHTML = response.data.results[i].description;
@@ -156,6 +156,19 @@ async function getCloniFigurine(fig_visualizzate){
 
                         dettagli.href = "Info_supereroe.html?id=" + idSupereroe;     //Link alla pagina di dettaglio del supereroe
                         
+                        // Imposta l'evento onclick con l'ID della figurina corrente
+                        if (!vendiButton) {
+                            console.error("❌ Errore: Pulsante 'Vendi' non trovato nel clone!");
+                        } else {
+                            console.log("✅ Debug: Pulsante 'Vendi' trovato correttamente!");
+                        }
+                        
+
+                        vendiButton.onclick = function() {
+                            console.log(`📢 Debug: Cliccato su Vendi per la figurina con ID ${idSupereroe}`);
+                            vendiFigurina(idSupereroe);
+                        };
+
                         /* Rimuovo il d-none dal clone in modo da renderlo visibile */
                         clone.classList.remove('d-none');
 
@@ -215,6 +228,7 @@ async function getCloniFigurine(fig_visualizzate){
                 let descrizione = clone.getElementsByClassName('card-text')[0];
                 let div_descrizione = clone.getElementsByClassName('description-container')[0];
                 let dettagli = clone.getElementsByClassName('card-link')[0];
+                let vendiButton = clone.getElementsByClassName("btn-danger")[0];
                 
                 /* Nelle variabili legate al clone mettiamo i valori presi dalla response (indice 0 perchè le richieste fatte con l'id supereroe ovviamente restituiscono solo un supereroe quindi l'array results sarà sempre da un elemento)*/
                 nome.innerHTML = response.data.results[0].name;
@@ -228,6 +242,19 @@ async function getCloniFigurine(fig_visualizzate){
 
                 dettagli.href = "Info_supereroe.html?id=" + response.data.results[0].id;     //Link alla pagina di dettaglio del supereroe
                 
+                // Imposta l'evento onclick con l'ID della figurina corrente
+                if (!vendiButton) {
+                    console.error("❌ Errore: Pulsante 'Vendi' non trovato nel clone!");
+                } else {
+                    console.log("✅ Debug: Pulsante 'Vendi' trovato correttamente!");
+                }
+
+                let idFigurina = arr_figurine_utente[offset].id;
+                vendiButton.onclick = function() {
+                    console.log(`📢 Debug: Cliccato su Vendi per la figurina con ID ${idFigurina}`);
+                    vendiFigurina(idFigurina);
+                }
+
                 /* Rimuovo il d-none dal clone in modo da renderlo visibile */
                 clone.classList.remove('d-none');
 
@@ -283,4 +310,36 @@ function changeActive(valoreSelezionato){
             break;
     }
     
+}
+
+function vendiFigurina(figurinaId) {
+    let idUtente = localStorage.getItem("idUtente");
+
+    // Mostro un alert di conferma
+    let conferma = window.confirm("Stai per vendere la figurina in cambio di un credito, sei sicuro?");
+    
+    // Se l'utente preme "Annulla", esce dalla funzione
+    if (!conferma) return;
+
+    let options = {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            figurinaId: figurinaId
+        })
+    };
+
+    fetch(`http://localhost:3000/utente/${idUtente}/vendiFigurina`, options)
+    .then(response => response.json())
+    .then(response => {
+        if(response.esito) {
+            console.log("Figurina venduta con successo");  // CONTROLLO DEBUG DA ELIMINARE
+            getCloniFigurine(); // Ricarica l'album per aggiornare la lista
+        } else {
+            console.error("Errore nella vendita della figurina:", response.messaggio);
+        }
+    })
+    .catch(error => console.error("Errore nella richiesta di vendita:", error));
 }

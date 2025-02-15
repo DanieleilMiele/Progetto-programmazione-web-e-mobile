@@ -7,9 +7,24 @@ app.use(express.json());
 const bodyParser = require('body-parser');
 app.use(bodyParser.json());
 
+const swaggerJsDoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
-const swaggerDocument = require('./swagger-output.json');
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+const swaggerOptions = {
+    swaggerDefinition: {
+        openapi: "3.0.0",
+        info: {
+            title: "REST API AFSE",
+            description: "Documentazione delle API per l'album di figurine MARVEL",
+            contact: {
+                name: "Daniele De Mita"
+            },
+            servers: ["http://localhost:3000"]
+        }
+    },
+    apis: ["server.js"]
+};
+const swaggerDocs = swaggerJsDoc(swaggerOptions);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 const cors = require('cors'); //Package che serve per per evitare errori CORS (ovvero quando il browser non permette di fare richieste che partono da un url diverso dal localhost)
 app.use(cors());
@@ -158,7 +173,6 @@ async function getAlbum(id,res){
         console.error(e);
         res.status(500).send("Errore generico del server, codice errore: "+e.code);
     }
-    console.log("Fine funzione restituzione array di id");            //CONTROLLO DEBUG DA ELIMINARE
 }
 
 //Funzione per la restituzione delle informazioni di un utente in base all'id
@@ -210,10 +224,10 @@ async function cambioPassword(body,res){
             console.log(JSON.stringify(esitoModifica));  //CONTROLLO DEBUG DA ELIMINARE
 
             if(esitoModifica.modifiedCount == 1){
-                res.status(200).send("Password cambiata con successo");
+                res.status(200).json({"messaggio": "Password cambiata con successo", "esito": true});
                 
             }else{
-                res.status(404).send("Utente non trovato");
+                res.status(404).json({"messaggio": "Utente non trovato", "esito": false});
             }
 
         }else{
@@ -546,18 +560,25 @@ async function accettaPropostaScambio(idUtente, idProposta, res) {
         const utenteAccettante = await dbConnection.collection("Utenti").findOne({ _id: ObjectId.createFromHexString(idUtente) });
         const utenteProponente = await dbConnection.collection("Utenti").findOne({ _id: ObjectId.createFromHexString(proposta.idUtente) });
 
+        // Verifica la validità dello scambio prima di eseguirlo
+        const validitaScambio = await verificaValiditaScambio(utenteAccettante, proposta);
+        if (!validitaScambio.valido) {
+            res.status(400).json({ "outcome": false, "message": validitaScambio.message });
+            return;
+        }
+
         // Semplice controllo anche qua che entrambe gli id corrispondano a utenti esistenti
         if (!utenteAccettante || !utenteProponente) {
             res.status(404).json({ "outcome": false, "message": "Uno dei due utenti non esiste" });
             return;
         }
 
-        // Verifica se l'utente accettante possiede la carta richiesta (controllo backend aggiuntivo per sicurezza)
+        /* // Verifica se l'utente accettante possiede la carta richiesta (controllo backend aggiuntivo per sicurezza)              //CONTROLLO DEBUG DA ELIMINARE
         let figurinaAccettante = utenteAccettante.album.find(fig => fig.id == proposta.idCartaRichiesta);
         if (!figurinaAccettante) {
             res.status(400).json({ "outcome": false, "message": "L'utente accettante non possiede la carta richiesta" });
             return;
-        }
+        } */
 
         // Funzione per gestire la rimozione di una figurina dall'album
         async function rimuoviFigurina(idUtente, idCarta) {
@@ -662,9 +683,100 @@ async function verificaValiditaScambio(utente, proposta) {
 }
 
 
+// Funzione per vendere una figurina e ottenere 1 credito
+async function vendiFigurina(idUtente, figurinaId, res) {
+    try {
+        await client.connect();
+        const dbConnection = client.db("AFSE");
+
+        // Rimuove la figurina dall'album dell'utente
+        let esitoRimozione = await dbConnection.collection("Utenti").updateOne({ _id: ObjectId.createFromHexString(idUtente) },{ $pull: { album: { id: figurinaId }}});
+
+        // Controllo se la rimozione è andata a buon fine
+        if (esitoRimozione.modifiedCount > 0) {
+            // Incrementa i crediti dell'utente
+            let esitoIncremento = await dbConnection.collection("Utenti").updateOne({ _id: ObjectId.createFromHexString(idUtente) },{ $inc: { crediti: 1 }});
+
+            if (esitoIncremento.modifiedCount > 0) {
+                res.status(200).json({
+                    "messaggio": "Figurina venduta con successo",
+                    "esito": true
+                });
+            } else {
+                res.status(500).json({
+                    "messaggio": "Errore nell'aggiornamento dei crediti",
+                    "esito": false
+                });
+            }
+        } else {
+            res.status(404).json({
+                "messaggio": "Figurina non trovata nell'album",
+                "esito": false
+            });
+        }
+    } catch (e) {
+        console.error("Errore nella vendita della figurina:", e);
+        res.status(500).send("Errore generico del server, codice errore: " + e.code);
+    }
+}
+
+
 /* ----------------------------------------------------------------------- PATHS --------------------------------------------------------------------------- */
 
 // Path per la registrazione dell'utente
+/**
+ * @swagger
+ * /registrazioneUtente:
+ *   post:
+ *     summary: Registra un nuovo utente
+ *     description: Permette a un nuovo utente di registrarsi fornendo username, email e password.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - username
+ *               - email
+ *               - password
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 description: Nome utente univoco
+ *                 example: "IronMan123"
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: Email dell'utente
+ *                 example: "ironman@avengers.com"
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 description: Password sicura dell'utente
+ *                 example: "SuperSicuro123!"
+ *     responses:
+ *       200:
+ *         description: Registrazione avvenuta con successo
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 outcome:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Utente registrato con successo"
+ *                 id:
+ *                   type: string
+ *                   example: "65a1bc123e89f8b6d1e4c67b"
+ *       400:
+ *         description: Errore di validazione dei dati
+ *       500:
+ *         description: Errore interno del server
+ */
 app.post('/registrazioneUtente', async (req, res) => {
     if(checkCampi(req.body, res)){
         req.body.password = hash(req.body.password);
@@ -673,6 +785,66 @@ app.post('/registrazioneUtente', async (req, res) => {
 });
 
 // Path per il login dell'utente
+/**
+ * @swagger
+ * /loginUtente:
+ *   post:
+ *     summary: Effettua il login di un utente
+ *     description: Permette a un utente di autenticarsi fornendo email e password.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: Email dell'utente registrato
+ *                 example: "ironman@avengers.com"
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 description: Password associata all'account
+ *                 example: "SuperSicuro123!"
+ *     responses:
+ *       202:
+ *         description: Login effettuato con successo
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 outcome:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Utente autenticato"
+ *                 _id:
+ *                   type: string
+ *                   example: "65a1bc123e89f8b6d1e4c67b"
+ *       401:
+ *         description: Credenziali errate
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 outcome:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Credenziali errate"
+ *       500:
+ *         description: Errore interno del server
+ */
+
 app.post('/loginUtente', async (req, res) => {
     if(checkCampi(req.body,res)){
         req.body.password = hash(req.body.password);
@@ -681,16 +853,158 @@ app.post('/loginUtente', async (req, res) => {
 })
 
 //Path per la restituzione di tutte le figurine di un utente
+/**
+ * @swagger
+ * /utente/{id}/figurine:
+ *   get:
+ *     summary: Ottiene tutte le figurine possedute da un utente
+ *     description: Restituisce l'elenco delle figurine presenti nell'album di un utente specifico.
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: ID dell'utente di cui ottenere le figurine
+ *         schema:
+ *           type: string
+ *           example: "65a1bc123e89f8b6d1e4c67b"
+ *     responses:
+ *       200:
+ *         description: Elenco delle figurine possedute dall'utente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 messaggio:
+ *                   type: string
+ *                   example: "id utente trovato"
+ *                 figurine:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                         example: "1011334"
+ *                       count:
+ *                         type: integer
+ *                         example: 2
+ *       404:
+ *         description: Utente non trovato
+ *       500:
+ *         description: Errore interno del server
+ */
+
 app.get('/utente/:id/figurine', async (req, res) => {
     await getAlbum(req.params.id, res);
 })
 
 //Path per la restituzione delle informazioni di un utente in base all'id
+/**
+ * @swagger
+ * /utente/{id}/info:
+ *   get:
+ *     summary: Recupera le informazioni di un utente
+ *     description: Restituisce i dati dell'utente specificato, inclusi username, email, crediti e pacchetti.
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: ID dell'utente da cercare
+ *         schema:
+ *           type: string
+ *           example: "65a1bc123e89f8b6d1e4c67b"
+ *     responses:
+ *       200:
+ *         description: Informazioni utente restituite con successo
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 username:
+ *                   type: string
+ *                   example: "IronMan123"
+ *                 email:
+ *                   type: string
+ *                   example: "ironman@avengers.com"
+ *                 crediti:
+ *                   type: integer
+ *                   example: 10
+ *                 pacchetti:
+ *                   type: integer
+ *                   example: 3
+ *       404:
+ *         description: Utente non trovato
+ *       500:
+ *         description: Errore interno del server
+ */
 app.get('/utente/:id/info', async (req, res) => {
     await getInfoUtente(req.params.id, res);
 })
 
 // Path per il cambio password di un utente
+/**
+ * @swagger
+ * /utente/{id}/cambioPsw:
+ *   post:
+ *     summary: Cambia la password di un utente
+ *     description: Permette a un utente di aggiornare la propria password.
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: ID dell'utente che vuole cambiare la password
+ *         schema:
+ *           type: string
+ *           example: "65a1bc123e89f8b6d1e4c67b"
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - password
+ *             properties:
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 description: Nuova password dell'utente
+ *                 example: "NuovaPasswordSicura123!"
+ *     responses:
+ *       200:
+ *         description: Password cambiata con successo
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 messaggio:
+ *                   type: string
+ *                   example: "Password cambiata con successo"
+ *                 esito:
+ *                   type: boolean
+ *                   example: true
+ *       401:
+ *         description: La nuova password non può essere uguale alla precedente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 messaggio:
+ *                   type: string
+ *                   example: "La nuova password non può essere uguale a quella vecchia"
+ *                 esito:
+ *                   type: boolean
+ *                   example: false
+ *       400:
+ *         description: Formato password non valido
+ *       500:
+ *         description: Errore interno del server
+ */
+
 app.post('/utente/:id/cambioPsw', async (req, res) => {
     if(checkCampi(req.body,res)){
         console.log("Psw pre hash: "+req.body.password);            //CONTROLLO DEBUG DA ELIMINARE
@@ -700,43 +1014,497 @@ app.post('/utente/:id/cambioPsw', async (req, res) => {
 })
 
 //Path per eliminazione account di un utente
+/**
+ * @swagger
+ * /utente/{id}/eliminaAccount:
+ *   delete:
+ *     summary: Elimina l'account di un utente
+ *     description: Rimuove definitivamente l'account di un utente dal database.
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: ID dell'utente da eliminare
+ *         schema:
+ *           type: string
+ *           example: "65a1bc123e89f8b6d1e4c67b"
+ *     responses:
+ *       200:
+ *         description: Account eliminato con successo
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 messaggio:
+ *                   type: string
+ *                   example: "Account eliminato con successo"
+ *                 esito:
+ *                   type: boolean
+ *                   example: true
+ *       404:
+ *         description: Utente non trovato
+ *       500:
+ *         description: Errore interno del server
+ */
 app.delete('/utente/:id/eliminaAccount', async (req, res) => {
     await eliminaAccount(req.params.id,res); 
 })
 
 //Path per l'acquisto di crediti
+/**
+ * @swagger
+ * /utente/{id}/acquistaCrediti:
+ *   post:
+ *     summary: Acquista crediti per l'utente
+ *     description: Aggiunge un numero specifico di crediti all'account di un utente.
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: ID dell'utente che sta acquistando crediti
+ *         schema:
+ *           type: string
+ *           example: "65a1bc123e89f8b6d1e4c67b"
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - crediti
+ *             properties:
+ *               crediti:
+ *                 type: integer
+ *                 description: Numero di crediti da acquistare
+ *                 example: 10
+ *     responses:
+ *       200:
+ *         description: Crediti acquistati con successo
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 messaggio:
+ *                   type: string
+ *                   example: "Crediti acquistati con successo"
+ *                 esito:
+ *                   type: boolean
+ *                   example: true
+ *       404:
+ *         description: Errore durante l'acquisto dei crediti
+ *       500:
+ *         description: Errore interno del server
+ */
+
 app.post('/utente/:id/acquistaCrediti', async (req, res) => {
     await acquistaCrediti(req.params.id, req.body, res);
 })
 
 //Path per l'acquisto di pacchetti
+/**
+ * @swagger
+ * /utente/{id}/acquistaPacchetti:
+ *   post:
+ *     summary: Acquista pacchetti di figurine
+ *     description: Permette a un utente di acquistare pacchetti di figurine utilizzando i crediti disponibili.
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: ID dell'utente che sta acquistando pacchetti
+ *         schema:
+ *           type: string
+ *           example: "65a1bc123e89f8b6d1e4c67b"
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - pacchetti
+ *             properties:
+ *               pacchetti:
+ *                 type: integer
+ *                 description: Numero di pacchetti da acquistare (1 pacchetto = 1 credito)
+ *                 example: 5
+ *     responses:
+ *       200:
+ *         description: Pacchetti acquistati con successo
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 messaggio:
+ *                   type: string
+ *                   example: "Pacchetti acquistati con successo"
+ *                 esito:
+ *                   type: boolean
+ *                   example: true
+ *       401:
+ *         description: Crediti insufficienti per l'acquisto
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 messaggio:
+ *                   type: string
+ *                   example: "Crediti insufficienti per l'acquisto"
+ *                 esito:
+ *                   type: boolean
+ *                   example: false
+ *       404:
+ *         description: Errore durante l'acquisto dei pacchetti
+ *       500:
+ *         description: Errore interno del server
+ */
+
 app.post('/utente/:id/acquistaPacchetti', async(req, res) => {
     await acquistaPacchetti(req.params.id, req.body, res);
 })
 
 //Path per il decremento dei pacchetti quando vengono aperti
+/**
+ * @swagger
+ * /utente/{id}/decrementaPacchetti:
+ *   post:
+ *     summary: Decrementa il numero di pacchetti posseduti dall'utente
+ *     description: Aggiorna il numero di pacchetti posseduti dall'utente dopo l'apertura di uno o più pacchetti.
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: ID dell'utente che ha aperto pacchetti
+ *         schema:
+ *           type: string
+ *           example: "65a1bc123e89f8b6d1e4c67b"
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - pacchettiDecrementati
+ *             properties:
+ *               pacchettiDecrementati:
+ *                 type: integer
+ *                 description: Nuovo numero di pacchetti dopo l'apertura
+ *                 example: 3
+ *     responses:
+ *       200:
+ *         description: Numero di pacchetti aggiornato con successo
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 messaggio:
+ *                   type: string
+ *                   example: "Pacchetti decrementati con successo"
+ *                 esito:
+ *                   type: boolean
+ *                   example: true
+ *       404:
+ *         description: Errore durante il decremento dei pacchetti
+ *       500:
+ *         description: Errore interno del server
+ */
+
 app.post('/utente/:id/decrementaPacchetti', async(req, res) => {
     await decrementaPacchetti(req.params.id, req.body, res);
 })
 
 //Path per l'aggiunta dei figurine aperti all'album dell'utente
+/**
+ * @swagger
+ * /utente/{id}/aggiungiFigurine:
+ *   post:
+ *     summary: Aggiunge nuove figurine all'album di un utente
+ *     description: Inserisce nell'album dell'utente le figurine ottenute dall'apertura di un pacchetto.
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: ID dell'utente che sta aggiungendo figurine
+ *         schema:
+ *           type: string
+ *           example: "65a1bc123e89f8b6d1e4c67b"
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - arrayFigurine
+ *             properties:
+ *               arrayFigurine:
+ *                 type: array
+ *                 description: Lista delle nuove figurine ottenute (ID dei supereroi)
+ *                 items:
+ *                   type: string
+ *                 example: ["1011334", "1009368", "1010846", "1009149", "1017100"]
+ *     responses:
+ *       200:
+ *         description: Figurine aggiunte con successo all'album
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 messaggio:
+ *                   type: string
+ *                   example: "Figurine aggiunte con successo"
+ *                 esito:
+ *                   type: boolean
+ *                   example: true
+ *       404:
+ *         description: Errore durante l'aggiunta delle figurine
+ *       500:
+ *         description: Errore interno del server
+ */
+
 app.post('/utente/:id/aggiungiFigurine', async(req, res) => {
     await aggiungiFigurine(req.params.id, req.body, res);
 })
 
 // Path per ottenere tutte le proposte di scambio
+/**
+ * @swagger
+ * /proposteScambio:
+ *   get:
+ *     summary: Ottiene tutte le proposte di scambio disponibili
+ *     description: Restituisce l'elenco di tutte le proposte di scambio attualmente presenti nel sistema.
+ *     responses:
+ *       200:
+ *         description: Lista delle proposte di scambio recuperata con successo
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 outcome:
+ *                   type: boolean
+ *                   example: true
+ *                 proposte:
+ *                   type: array
+ *                   description: Elenco delle proposte di scambio disponibili
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       idUtente:
+ *                         type: string
+ *                         description: ID dell'utente che ha creato la proposta
+ *                         example: "65a1bc123e89f8b6d1e4c67b"
+ *                       nomeUtente:
+ *                         type: string
+ *                         description: Nome dell'utente che ha creato la proposta
+ *                         example: "IronMan123"
+ *                       idCartaProposta:
+ *                         type: string
+ *                         description: ID della carta proposta per lo scambio
+ *                         example: "1011334"
+ *                       idSecondaCartaProposta:
+ *                         type: string
+ *                         description: ID di una seconda carta proposta (opzionale)
+ *                         example: "1009368"
+ *                       idCartaRichiesta:
+ *                         type: string
+ *                         description: ID della carta richiesta in cambio
+ *                         example: "1017100"
+ *                       dataProposta:
+ *                         type: string
+ *                         format: date-time
+ *                         description: Data in cui la proposta è stata creata
+ *                         example: "2024-06-15T12:00:00Z"
+ *       500:
+ *         description: Errore interno del server
+ */
 app.get('/proposteScambio', async (req, res) => {
     await getProposteScambio(res);
 });
 
 // Path per aggiungere una nuova proposta di scambio
+/**
+ * @swagger
+ * /utente/{id}/proposteScambio:
+ *   post:
+ *     summary: Crea una nuova proposta di scambio
+ *     description: Permette a un utente di proporre uno scambio di figurine.
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: ID dell'utente che sta creando la proposta di scambio
+ *         schema:
+ *           type: string
+ *           example: "65a1bc123e89f8b6d1e4c67b"
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - nomeUtente
+ *               - idCartaProposta
+ *               - idCartaRichiesta
+ *             properties:
+ *               nomeUtente:
+ *                 type: string
+ *                 description: Nome dell'utente che crea la proposta
+ *                 example: "IronMan123"
+ *               idCartaProposta:
+ *                 type: string
+ *                 description: ID della carta proposta per lo scambio
+ *                 example: "1011334"
+ *               idSecondaCartaProposta:
+ *                 type: string
+ *                 description: ID di una seconda carta proposta (opzionale)
+ *                 example: "1009368"
+ *               idCartaRichiesta:
+ *                 type: string
+ *                 description: ID della carta richiesta in cambio
+ *                 example: "1017100"
+ *     responses:
+ *       200:
+ *         description: Proposta di scambio creata con successo
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 outcome:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Proposta di scambio aggiunta con successo"
+ *       400:
+ *         description: Errore nella creazione della proposta di scambio
+ *       500:
+ *         description: Errore interno del server
+ */
+
 app.post('/utente/:id/proposteScambio', async (req, res) => {
     await aggiungiPropostaScambio(req.params.id, req.body, res);
 });
 
 // Path per accettare una proposta di scambio
+/**
+ * @swagger
+ * /utente/{id}/accettaProposta/{idProposta}:
+ *   post:
+ *     summary: Accetta una proposta di scambio
+ *     description: Permette a un utente di accettare una proposta di scambio e scambiare le figurine con un altro utente.
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: ID dell'utente che sta accettando la proposta
+ *         schema:
+ *           type: string
+ *           example: "65a1bc123e89f8b6d1e4c67b"
+ *       - name: idProposta
+ *         in: path
+ *         required: true
+ *         description: ID della proposta di scambio da accettare
+ *         schema:
+ *           type: string
+ *           example: "75b2de456f9c7a2d3e6f8g9h"
+ *     responses:
+ *       200:
+ *         description: Scambio effettuato con successo
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 outcome:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Scambio effettuato con successo"
+ *       400:
+ *         description: L'utente non possiede la carta richiesta o ha già la carta proposta
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 outcome:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Non possiedi la carta richiesta per accettare lo scambio"
+ *       404:
+ *         description: Proposta di scambio non trovata o utente non esistente
+ *       500:
+ *         description: Errore interno del server
+ */
+
 app.post('/utente/:id/accettaProposta/:idProposta', async (req, res) => {
     await accettaPropostaScambio(req.params.id, req.params.idProposta, res);
+});
+
+// Path per la vendita di una figurina
+/**
+ * @swagger
+ * /utente/{id}/vendiFigurina:
+ *   post:
+ *     summary: Vende una figurina in cambio di crediti
+ *     description: Permette a un utente di vendere una figurina e ricevere 1 credito in cambio.
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: ID dell'utente che sta vendendo la figurina
+ *         schema:
+ *           type: string
+ *           example: "65a1bc123e89f8b6d1e4c67b"
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - figurinaId
+ *             properties:
+ *               figurinaId:
+ *                 type: string
+ *                 description: ID della figurina da vendere
+ *                 example: "1011334"
+ *     responses:
+ *       200:
+ *         description: Figurina venduta con successo
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 messaggio:
+ *                   type: string
+ *                   example: "Figurina venduta con successo"
+ *                 esito:
+ *                   type: boolean
+ *                   example: true
+ *       404:
+ *         description: Figurina non trovata nell'album dell'utente
+ *       500:
+ *         description: Errore interno del server
+ */
+
+app.post('/utente/:id/vendiFigurina', async (req, res) => {
+    await vendiFigurina(req.params.id, req.body.figurinaId, res);
 });
 
 // Path l'ascolto del server sulla porta 3000
